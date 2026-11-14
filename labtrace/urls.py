@@ -9,10 +9,12 @@ urlpatterns = [
     path("", RedirectView.as_view(pattern_name="dashboard:home", permanent=False)),
     path("accounts/", include("authentication.urls")),
     path("dashboard/", include("dashboard.urls")),
+    
     # Added in later steps:
     path("users/", include("users.urls")),
     path("visits/", include("access_logging.urls")),
     path("equipment/", include("equipment.urls")),
+
     # path("incidents/", include("incidents.urls")),
 ]
 
