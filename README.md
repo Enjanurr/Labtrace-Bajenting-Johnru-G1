@@ -1,40 +1,273 @@
-LabTrace - Offline Laboratory Asset & Access Logging SystemLabTrace is a modularized, production-ready Django web application designed for tracking laboratory attendance, managing hardware asset borrowing with condition checking, and logging laboratory incidents in strict offline environments.🚀 Quick Setup & Installation GuidePrerequisitesPython 3.11+Virtual environment tool (venv)1. Project Initialization# Set up virtual environment
-python3 -m venv .venv
+# LabTrace
 
-# Activate virtual environment
-# On Windows (PowerShell):
-.\.venv\Scripts\Activate.ps1
-# On macOS/Linux:
-source .venv/bin/activate
+LabTrace is a Django application for laboratory user accounts, lab visits, and
+equipment loans. The repository is organized as modular Django apps, with
+shared project templates and locally stored static files.
 
-# Install dependencies
-pip install -r requirements.txt
-2. Database Setup & Seeding# Generate database migrations
-python manage.py makemigrations authentication users access_logging equipment incidents dashboard
+> **Current state:** This is an in-progress development project, not a
+> production-ready or fully offline deployment. See [LOG.md](LOG.md) for the
+> implementation status, known gaps, and onboarding notes.
 
-# Apply database migrations
-python manage.py migrate
+## What is implemented
 
-# (Optional) Seed default demo accounts and assets
-python manage.py seed_data
-3. Run Development Serverpython manage.py runserver 0.0.0.0:8000
-Access the application at: http://127.0.0.1:8000/🔑 Pre-Seeded Accounts (Default)RoleUsername / EmailPasswordAccess / ScopeAdmin / Lab Manageradmin (admin@cit.edu)admin123Full administrative access & audit trailInstructorinstructor (instructor@cit.edu)password123Equipment inspection & status managementResearcherresearcher (researcher@cit.edu)password123Lab access & equipment usageStudentstudent (student@cit.edu)password123Basic lab check-in, borrowing & reporting🏗️ Architecture & Modular Structurelabtrace/
-├── manage.py                   # Django CLI utility
-├── requirements.txt             # Python dependencies
-├── README.md                    # Project documentation & context
-│
-├── labtrace/                   # Root Configuration Directory
-│   ├── settings.py             # Configured for custom models, static/media, & offline apps
-│   └── urls.py                 # Core routing table delegating to apps
-│
-├── authentication/             # App 1: Custom User Model (AbstractUser) & @cit.edu validation
-├── users/                      # App 2: Profiles, RBAC middleware, & account deactivation
-├── access_logging/             # App 3: Lab Entry/Exit & AJAX Check-Out tracking
-├── equipment/                  # App 4: Asset Inventory, Pre/Post Condition Inspections
-├── incidents/                  # App 5: Incident Reports & Multi-Parameter Audit Trail
-├── dashboard/                  # App 6: Real-time Occupancy & Unified Analytics View
-│
-├── static/                     # Bundled Offline Static Assets (Tailwind CSS, jQuery, JS)
-├── media/                      # Uploaded pre/post inspection photos & incident files
-└── templates/                  # Modular HTML5 Templates
-🔒 Offline Constraints & RulesNo External CDNs: All static assets (CSS, JavaScript libraries) reside locally inside the static/ folder.Local Media Storage: All file attachments and photo proof images are saved to local disk inside media/.Institutional Email Enforcement: User registration enforces @cit.edu domain validation.
+- **Authentication (`authentication`)** — custom `AbstractUser` model, role
+  field, institutional email validation, registration, login, and logout.
+- **User management (`users`)** — profile editing, administrator role changes
+  and activation controls, role-based access helpers, and password reset.
+- **Lab visits (`access_logging`)** — check-in, visit history, check-out, and a
+  staff active-visits/occupancy view with an AJAX refresh and checkout action.
+- **Equipment (`equipment`)** — inventory, borrowing and returning, condition
+  recording, optional/required proof photos, and staff asset editing.
+- **Dashboards (`dashboard`)** — role-specific landing pages; the admin page
+  currently displays user counts.
+- **Incidents (`incidents`)** — app package scaffold only; the incident workflow
+  and routing are not implemented.
+
+## Architecture and current file layout
+
+This tree reflects the workspace files as inspected on 2026-11-14. It excludes
+`.git`, Python cache files, dependency directories, and the generated contents
+of `sent_emails/`. `.env` and `db.sqlite3` are present locally and ignored by
+Git; do not commit local credentials or database data.
+
+```text
+lab/
+├── .env                              # Local settings; not tracked
+├── .gitignore
+├── README.md
+├── LOG.md                            # Status and AI/developer onboarding notes
+├── FILETREE.md                       # Companion workspace map
+├── manage.py                         # Django command entry point
+├── db.sqlite3                        # Local artifact; not the configured backend
+├── requirements.txt                  # Django, psycopg, python-dotenv
+├── package.json                      # Tailwind CSS development dependency
+├── package-lock.json
+├── tailwind.config.js
+├── tailwindcss.exe                   # Local Tailwind executable
+├── sent_emails/                      # File-based password-reset output
+├── labtrace/                         # Django project configuration
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py                   # Apps, PostgreSQL, auth, email, static/media
+│   ├── urls.py                       # Root routes and app includes
+│   └── wsgi.py
+├── authentication/                   # Custom user model and authentication
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── forms.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── views.py
+│   ├── migrations/
+│   │   ├── __init__.py
+│   │   ├── 0001_initial.py
+│   │   ├── 0002_alter_user_options_alter_user_email_and_more.py
+│   │   └── 0003_user_contact_number_user_department.py
+│   └── templates/                     # Present, currently empty
+├── users/                             # Profiles, role controls, password reset
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── decorators.py
+│   ├── forms.py
+│   ├── middleware.py
+│   ├── models.py                      # No app-specific model yet
+│   ├── permissions.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── views.py
+│   ├── migrations/
+│   │   └── __init__.py
+│   └── templates/
+│       └── users/
+│           ├── deactivate.html
+│           ├── password_change.html
+│           ├── password_reset_complete.html
+│           ├── password_reset_confirm.html
+│           ├── password_reset_done.html
+│           ├── password_reset_email.txt
+│           ├── password_reset_form.html
+│           ├── password_reset_subject.txt
+│           ├── profile.html
+│           └── user_list.html
+├── access_logging/                    # Visit check-in/out and occupancy
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── forms.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── views.py
+│   ├── migrations/
+│   │   ├── __init__.py
+│   │   └── 0001_initial.py
+│   └── templates/
+│       └── access_logging/
+│           ├── _active_rows.html
+│           ├── active_visits.html
+│           ├── check_in.html
+│           └── my_visits.html
+├── equipment/                         # Asset inventory and loan records
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── forms.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── views.py
+│   ├── migrations/
+│   │   ├── __init__.py
+│   │   └── 0001_initial.py
+│   └── templates/                     # Present, currently empty
+├── incidents/                         # Scaffold; no URL module or migrations
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── tests.py
+│   └── views.py
+├── dashboard/                         # Role-specific dashboard views
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py                      # No app-specific model yet
+│   ├── tests.py
+│   ├── urls.py
+│   ├── views.py
+│   ├── migrations/
+│   │   └── __init__.py
+│   └── templates/                     # Present, currently empty
+├── templates/                         # Shared/project-level Django templates
+│   ├── 403.html
+│   ├── base.html
+│   ├── authentication/
+│   │   ├── _field.html
+│   │   └── register.html
+│   ├── dashboard/
+│   │   ├── admin.html
+│   │   ├── instructor.html
+│   │   ├── researcher.html
+│   │   └── student.html
+│   ├── equipment/
+│   │   ├── asset_form.html
+│   │   ├── borrow.html
+│   │   ├── inventory.htm
+│   │   ├── my_equipment.html
+│   │   └── return.html
+│   ├── registration/
+│   │   ├── _field.html
+│   │   ├── login.html
+│   │   ├── password_reset_complete.html
+│   │   ├── password_reset_confirm.html
+│   │   ├── password_reset_form.html
+│   │   └── register.html
+│   └── users/
+│       ├── profile.html
+│       └── profile_edit.html
+├── static/                            # Locally stored static assets
+│   ├── css/
+│   │   └── tailwind.css
+│   ├── js/
+│   │   ├── jquery.min.js
+│   │   └── main.js
+│   └── src/                           # Present, currently empty
+└── tailwind/
+    └── input.css                      # Tailwind source stylesheet
+```
+
+### How the pieces fit together
+
+- `labtrace/settings.py` installs the six project apps and selects
+  `authentication.User` as `AUTH_USER_MODEL`. `labtrace/urls.py` mounts the
+  admin, account, dashboard, user, visit, and equipment routes. Incident
+  routing is currently commented out.
+- `authentication.User` extends Django's `AbstractUser`. Roles are `STUDENT`,
+  `INSTRUCTOR`, `RESEARCHER`, and `ADMIN`; new registrations are assigned the
+  student role. `@cit.edu` is the configured allowed email domain. The profile
+  form also sets the username to the saved email; login accepts username or
+  email.
+- `access_logging.LabVisit` records visits and permits at most one active visit
+  per user. `equipment.EquipmentLog` links a loan to a visit and records
+  pre-/post-return condition. An active visit cannot be checked out while it
+  has unreturned equipment.
+- The project-level `templates/` directory is configured in Django settings;
+  apps may also provide templates under their own `templates/` directories.
+- Password-reset emails use Django's file-based email backend and are written
+  to `sent_emails/`. Uploaded equipment condition images are configured to use
+  local `MEDIA_ROOT` (`media/`), which is not currently present in the tree.
+
+## Requirements and local setup
+
+Requirements are listed in `requirements.txt`: Django 5.2, `psycopg` 3, and
+`python-dotenv`. A PostgreSQL server that accepts SSL connections is required
+by the current settings; the checked-in/local `db.sqlite3` is **not** selected
+as the application database.
+
+1. Use Python 3.11 or newer and create/activate a virtual environment:
+
+   ```powershell
+   python -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   ```
+
+   On macOS/Linux, activate with `source .venv/bin/activate`.
+
+2. Install Python requirements:
+
+   ```shell
+   python -m pip install -r requirements.txt
+   ```
+
+3. Configure the PostgreSQL connection in the ignored local `.env` file:
+
+   ```dotenv
+   DB_NAME=your_database
+   DB_USER=your_database_user
+   DB_PASSWORD=your_database_password
+   DB_HOST=your_database_host
+   DB_PORT=5432
+   ```
+
+   `DB_NAME` and `DB_PORT` have settings defaults, but provide all connection
+   values appropriate to your PostgreSQL instance. The connection is set to
+   `sslmode=require`. Keep real credentials out of source control.
+
+4. Apply migrations and start the development server:
+
+   ```shell
+   python manage.py migrate
+   python manage.py runserver
+   ```
+
+   Open `http://127.0.0.1:8000/`. The project has no `seed_data` command or
+   guaranteed demo accounts; create accounts through registration or Django
+   admin as appropriate.
+
+When changing models, create and review migrations with `python manage.py
+makemigrations` before applying them. The current test modules are mostly
+placeholders; `users/tests.py` contains a small set of routing tests. Run
+`python manage.py test` against a configured, reachable test database before
+relying on a change.
+
+## Offline and deployment caveats
+
+- jQuery and a compiled Tailwind stylesheet are stored under `static/`, but
+  `templates/base.html` also loads `https://cdn.tailwindcss.com`. The current
+  pages therefore still make a network request and do not satisfy a strict
+  offline requirement.
+- The database is configured for PostgreSQL, which may be local but must be
+  provisioned separately. File-based email and media storage are local.
+- `DEBUG` is enabled and `SECRET_KEY` has a development placeholder in the
+  current settings. Configure secure deployment settings before exposing the
+  application.
+- Equipment templates are in the shared template directory. The inventory
+  view requests `equipment/inventory.html`, while the current file is named
+  `templates/equipment/inventory.htm`; reconcile the filename or view before
+  using that page.
+- `requirements.txt` does not currently list Pillow even though equipment
+  models use `ImageField`; verify/add the image dependency before using
+  condition-image uploads.

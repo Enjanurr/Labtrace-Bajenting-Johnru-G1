@@ -29,6 +29,8 @@ class User(AbstractUser):
         validators=[validate_institutional_email],
         error_messages={"unique": "A user with this email already exists."},
     )
+    contact_number = models.CharField(max_length=32, blank=True)
+    department = models.CharField(max_length=100, blank=True)
     role = models.CharField(
         max_length=20,
         choices=Role.choices,

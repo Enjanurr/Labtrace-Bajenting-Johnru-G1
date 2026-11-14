@@ -4,8 +4,12 @@ Fully offline configuration: no CDN, no external services.
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
 
 # --- Core ---------------------------------------------------------------
 SECRET_KEY = "django-insecure-change-me-before-any-real-deployment"
@@ -68,10 +72,16 @@ ASGI_APPLICATION = "labtrace.asgi.application"
 # --- Database (local SQLite file) ---------------------------------------
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME", "postgres"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT", "5432"),
+        "OPTIONS": {"sslmode": "require"},
     }
 }
+
 # Lab rooms offered in the check-in form. Edit to match your lab.
 LAB_LOCATIONS = [
     "Computer Lab 1",
@@ -89,8 +99,10 @@ ALLOWED_EMAIL_DOMAINS = ["cit.edu"]
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-     "OPTIONS": {"min_length": 8}},
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 8},
+    },
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]

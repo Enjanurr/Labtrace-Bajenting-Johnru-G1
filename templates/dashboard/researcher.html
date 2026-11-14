@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Researcher Dashboard{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-6xl">
+  <div class="mb-8">
+    <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Overview</p>
+    <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">Researcher Dashboard</h1>
+    <p class="mt-2 text-sm text-slate-500">Welcome, {{ user.first_name|default:user.email }}. Log your research sessions and equipment.</p>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><p class="font-semibold text-slate-800">Research check-in</p><p class="mt-2 text-sm leading-6 text-slate-500">Log a research session <span class="text-slate-400">(Phase 4)</span></p></div>
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><p class="font-semibold text-slate-800">Borrowed instruments</p><p class="mt-2 text-sm leading-6 text-slate-500">View research equipment <span class="text-slate-400">(Phase 5)</span></p></div>
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><p class="font-semibold text-slate-800">Incident reports</p><p class="mt-2 text-sm leading-6 text-slate-500">Review your submissions <span class="text-slate-400">(Phase 6)</span></p></div>
+  </div>
+</div>
+{% endblock %}

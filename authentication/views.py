@@ -25,7 +25,7 @@ def register_view(request):
 
 
 class LabTraceLoginView(LoginView):
-    template_name = "authentication/login.html"
+    template_name = "registration/login.html"
     authentication_form = LoginForm
     redirect_authenticated_user = True  # logged-in users skip the login page
 
