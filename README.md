@@ -1,3 +1,5 @@
+# Johnru I. Bajenting CSIT327-G1
+
 # LabTrace
 
 LabTrace is a Django application for laboratory user accounts, lab visits, and
