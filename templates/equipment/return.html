@@ -30,8 +30,8 @@
       {% include "authentication/_field.html" with field=form.post_condition %}
       {% include "authentication/_field.html" with field=form.post_condition_img %}
       <div class="flex flex-col-reverse gap-3 sm:flex-row">
-        <a href="{% url 'equipment:mine' %}" class="inline-flex justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">Cancel</a>
-        <button type="submit" class="inline-flex justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300">Confirm return</button>
+        <a href="{% url 'equipment:mine' %}" class="inline-flex justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">Cancel</a>
+        <button type="submit" class="inline-flex justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:text-purple-200 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] focus:outline-none focus:ring-2 focus:ring-indigo-300 active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Confirm return</button>
       </div>
     </form>
   </div>

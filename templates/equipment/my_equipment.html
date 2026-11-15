@@ -9,7 +9,7 @@
         <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Equipment</p>
         <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900">Currently borrowed</h1>
       </div>
-      <a href="{% url 'equipment:borrow' %}" class="inline-flex justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700">Borrow equipment</a>
+      <a href="{% url 'equipment:borrow' %}" class="inline-flex justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:text-purple-200 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Borrow equipment</a>
     </div>
     <div class="mt-4 divide-y divide-slate-100">
       {% for log in current %}
@@ -20,7 +20,7 @@
             {{ log.visit.lab_location }} &middot; since {{ log.borrowed_at|date:"M d, H:i" }} &middot; condition: {{ log.get_pre_condition_display }}
           </div>
         </div>
-        <a href="{% url 'equipment:return' log.pk %}" class="rounded-lg border border-green-300 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-50">Return</a>
+        <a href="{% url 'equipment:return' log.pk %}" class="rounded-lg border border-green-300 px-3 py-1.5 text-xs font-medium text-green-700 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">Return</a>
       </div>
       {% empty %}
       <p class="py-4 text-sm text-slate-500">Nothing borrowed right now.</p>
@@ -59,8 +59,8 @@
     <div class="mt-4 flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
       <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
       <div class="flex gap-2">
-        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="rounded-lg border border-slate-300 px-3 py-1 hover:bg-slate-50">Prev</a>{% endif %}
-        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="rounded-lg border border-slate-300 px-3 py-1 hover:bg-slate-50">Next</a>{% endif %}
+        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="rounded-lg border border-slate-300 px-3 py-1 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">Prev</a>{% endif %}
+        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="rounded-lg border border-slate-300 px-3 py-1 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">Next</a>{% endif %}
       </div>
     </div>
   </div>
