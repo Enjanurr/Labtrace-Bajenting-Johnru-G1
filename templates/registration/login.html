@@ -22,17 +22,17 @@
       {% include "registration/_field.html" with field=form.username %}
       {% include "registration/_field.html" with field=form.password toggle=True %}
       <div class="text-right text-sm">
-        <a href="{% url 'users:password_reset' %}" class="font-medium text-indigo-600 hover:underline">Forgot password?</a>
+        <a href="{% url 'users:password_reset' %}" class="font-medium text-indigo-600 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Forgot password?</a>
       </div>
       <button type="submit"
-              class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+              class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:text-purple-200 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] focus:outline-none focus:ring-2 focus:ring-indigo-300 active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">
         Sign in
       </button>
     </form>
 
     <p class="mt-6 text-center text-sm text-slate-600">
       No account yet?
-      <a href="{% url 'authentication:register' %}" class="font-medium text-indigo-600 hover:underline">Register</a>
+      <a href="{% url 'authentication:register' %}" class="font-medium text-indigo-600 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Register</a>
     </p>
   </div>
 </div>

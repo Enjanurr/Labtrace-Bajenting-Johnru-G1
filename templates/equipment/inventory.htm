@@ -9,9 +9,9 @@
       <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900">Equipment inventory</h1>
     </div>
     <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-      <a href="{% url 'equipment:borrow' %}" class="inline-flex justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700">Borrow equipment</a>
+      <a href="{% url 'equipment:borrow' %}" class="inline-flex justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:text-purple-200 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Borrow equipment</a>
       {% if user.is_staff_role %}
-      <a href="{% url 'equipment:asset_new' %}" class="inline-flex justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">Add asset</a>
+      <a href="{% url 'equipment:asset_new' %}" class="inline-flex justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">Add asset</a>
       {% endif %}
     </div>
   </div>
@@ -25,8 +25,8 @@
       <option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
-    <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2.5 font-semibold text-white shadow-sm transition hover:bg-indigo-700">Filter</button>
-    <a href="{% url 'equipment:inventory' %}" class="inline-flex justify-center px-2 py-2.5 text-slate-500 transition hover:text-indigo-600">Reset</a>
+    <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2.5 font-semibold text-white shadow-sm transition hover:text-purple-200 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Filter</button>
+    <a href="{% url 'equipment:inventory' %}" class="inline-flex justify-center px-2 py-2.5 text-slate-500 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Reset</a>
   </form>
 
   <div class="mt-4 overflow-x-auto">
@@ -65,13 +65,13 @@
           <td class="px-3 py-3">
             <div class="flex gap-3 text-xs font-medium">
               {% if a.availability_status == 'AVAILABLE' %}
-              <a href="{% url 'equipment:borrow' %}?asset={{ a.pk }}" class="text-indigo-600 hover:underline">Borrow</a>
+              <a href="{% url 'equipment:borrow' %}?asset={{ a.pk }}" class="text-indigo-600 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Borrow</a>
               {% endif %}
               {% if a.open_log and user.is_staff_role %}
-              <a href="{% url 'equipment:return' a.open_log.pk %}" class="text-green-700 hover:underline">Return</a>
+              <a href="{% url 'equipment:return' a.open_log.pk %}" class="text-green-700 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Return</a>
               {% endif %}
               {% if user.is_staff_role %}
-              <a href="{% url 'equipment:asset_edit' a.pk %}" class="text-slate-600 hover:underline">Edit</a>
+              <a href="{% url 'equipment:asset_edit' a.pk %}" class="text-slate-600 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Edit</a>
               {% endif %}
             </div>
           </td>
@@ -86,8 +86,8 @@
   <div class="mt-4 flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
     <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} items)</span>
     <div class="flex gap-2">
-      {% if page_obj.has_previous %}<a href="?{{ querystring }}&page={{ page_obj.previous_page_number }}" class="rounded-lg border border-slate-300 px-3 py-1 hover:bg-slate-50">Prev</a>{% endif %}
-      {% if page_obj.has_next %}<a href="?{{ querystring }}&page={{ page_obj.next_page_number }}" class="rounded-lg border border-slate-300 px-3 py-1 hover:bg-slate-50">Next</a>{% endif %}
+      {% if page_obj.has_previous %}<a href="?{{ querystring }}&page={{ page_obj.previous_page_number }}" class="rounded-lg border border-slate-300 px-3 py-1 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">Prev</a>{% endif %}
+      {% if page_obj.has_next %}<a href="?{{ querystring }}&page={{ page_obj.next_page_number }}" class="rounded-lg border border-slate-300 px-3 py-1 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">Next</a>{% endif %}
     </div>
   </div>
 </div>
