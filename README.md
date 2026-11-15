@@ -1,13 +1,12 @@
 
+# Johnru I. Bajenting CSIT327-G1
+
 # LabTrace
 
 LabTrace is a Django application for laboratory user accounts, lab visits, and
 equipment loans. The repository is organized as modular Django apps, with
 shared project templates and locally stored static files.
 
-> **Current state:** This is an in-progress development project, not a
-> production-ready or fully offline deployment. See [LOG.md](LOG.md) for the
-> implementation status, known gaps, and onboarding notes.
 
 ## What is implemented
 
