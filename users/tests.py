@@ -1,5 +1,8 @@
-from django.test import SimpleTestCase
+from django.contrib.auth import get_user_model
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
+
+User = get_user_model()
 
 
 class PasswordResetRoutingTests(SimpleTestCase):
@@ -27,3 +30,60 @@ class UserManagementRoutingTests(SimpleTestCase):
             reverse("users:manage_toggle", kwargs={"pk": 12}),
             "/users/manage/12/toggle-active/",
         )
+
+
+class ProfileBehaviorTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="labuser",
+            email="labuser@cit.edu",
+            password="SecurePass123!",
+        )
+        self.client.force_login(self.user)
+
+    def test_profile_and_edit_templates_resolve(self):
+        response = self.client.get(reverse("users:profile"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "users/profile.html")
+
+        response = self.client.get(reverse("users:profile_edit"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "users/profile_edit.html")
+
+    def test_profile_update_changes_only_the_signed_in_user(self):
+        response = self.client.post(
+            reverse("users:profile_edit"),
+            {
+                "first_name": "Lab",
+                "last_name": "Member",
+                "email": "newaddress@cit.edu",
+                "contact_number": "555-0100",
+                "department": "Chemistry",
+            },
+        )
+
+        self.assertRedirects(response, reverse("users:profile"))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Lab")
+        self.assertEqual(self.user.email, "newaddress@cit.edu")
+        self.assertEqual(self.user.username, "newaddress@cit.edu")
+        self.assertEqual(self.user.department, "Chemistry")
+
+    def test_password_change_template_and_route_resolve(self):
+        response = self.client.get(reverse("users:password_change"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "users/password_change.html")
+
+        response = self.client.post(
+            reverse("users:password_change"),
+            {
+                "old_password": "SecurePass123!",
+                "new_password1": "A-different-password-234!",
+                "new_password2": "A-different-password-234!",
+            },
+        )
+
+        self.assertRedirects(response, reverse("users:profile"))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("A-different-password-234!"))

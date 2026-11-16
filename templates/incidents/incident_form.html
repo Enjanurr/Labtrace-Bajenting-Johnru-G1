@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Report incident{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-2xl px-4 py-10">
+  <div class="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
+    <h1 class="text-xl font-semibold text-slate-900">Report an incident</h1>
+    <p class="mt-1 text-sm text-slate-500">Describe what happened. Link a visit or equipment loan if it is related.</p>
+
+    <form method="post" enctype="multipart/form-data" class="mt-6 space-y-4" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="space-y-1">
+        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<p class="text-xs text-red-600">{{ error }}</p>{% endfor %}
+      </div>
+      {% endfor %}
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">Submit report</button>
+        <a href="{% url 'incidents:list' %}" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
