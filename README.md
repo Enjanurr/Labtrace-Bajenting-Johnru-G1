@@ -8,6 +8,7 @@ equipment loans. The repository is organized as modular Django apps, with
 shared project templates and locally stored static files.
 
 
+
 ## What is implemented
 
 - **Authentication (`authentication`)** — custom `AbstractUser` model, role
