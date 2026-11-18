@@ -1,68 +1,138 @@
 {% extends "base.html" %}
-{% block title %}My equipment{% endblock %}
+{% block title %}My Equipment{% endblock %}
 
 {% block content %}
-<div class="mx-auto max-w-6xl space-y-6">
-  <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+<div class="space-y-6">
+
+  <!-- Currently Borrowed Section -->
+  <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm sm:p-8">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-5">
       <div>
-        <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Equipment</p>
-        <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900">Currently borrowed</h1>
+        <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Active Possession</span>
+        <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900">Currently Borrowed Hardware</h1>
+        <p class="mt-1 text-xs text-slate-500">Equipment currently signed out to your laboratory sessions.</p>
       </div>
-      <a href="{% url 'equipment:borrow' %}" class="inline-flex justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:text-purple-200 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Borrow equipment</a>
+
+      <a href="{% url 'equipment:borrow' %}" 
+         class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-soft-xs shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        Borrow Equipment
+      </a>
     </div>
+
+    <!-- Active Items List -->
     <div class="mt-4 divide-y divide-slate-100">
       {% for log in current %}
-      <div class="flex flex-col gap-3 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div class="font-medium text-slate-900">{{ log.asset.asset_code }} &middot; {{ log.asset.name }}</div>
-          <div class="text-xs text-slate-500">
-            {{ log.visit.lab_location }} &middot; since {{ log.borrowed_at|date:"M d, H:i" }} &middot; condition: {{ log.get_pre_condition_display }}
+      <div class="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between hover:bg-slate-50/50 px-3 rounded-xl transition-colors">
+        <div class="flex items-start gap-3.5">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 mt-0.5">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{{ log.asset.asset_code }}</span>
+              <h3 class="font-semibold text-slate-900 text-sm">{{ log.asset.name }}</h3>
+            </div>
+            <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+              <span>Location: <strong class="text-slate-700">{{ log.visit.lab_location }}</strong></span>
+              <span>&middot;</span>
+              <span>Signed out: <span class="font-medium text-slate-700">{{ log.borrowed_at|date:"M d, H:i" }}</span></span>
+              <span>&middot;</span>
+              <span>Condition: <span class="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-700">{{ log.get_pre_condition_display }}</span></span>
+            </div>
           </div>
         </div>
-        <a href="{% url 'equipment:return' log.pk %}" class="rounded-lg border border-green-300 px-3 py-1.5 text-xs font-medium text-green-700 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">Return</a>
+
+        <div>
+          <a href="{% url 'equipment:return' log.pk %}" 
+             class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-700 shadow-soft-xs hover:bg-emerald-100 transition-colors">
+            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Return Asset
+          </a>
+        </div>
       </div>
       {% empty %}
-      <p class="py-4 text-sm text-slate-500">Nothing borrowed right now.</p>
+      <div class="py-8 text-center text-xs text-slate-400">
+        <p>You have no equipment items checked out right now.</p>
+      </div>
       {% endfor %}
     </div>
   </div>
 
-  <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-    <h2 class="text-lg font-semibold text-slate-900">Borrowing history</h2>
-    <div class="mt-4 overflow-x-auto">
-      <table class="min-w-full text-left text-sm">
-        <thead class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+  <!-- Historical Circulation Log -->
+  <div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft-sm">
+    <div class="border-b border-slate-100 px-6 py-4">
+      <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Historical Equipment Circulation</h2>
+      <p class="text-xs text-slate-500">Completed returns and inspection logs.</p>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+        <thead class="bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
           <tr>
-            <th class="whitespace-nowrap px-3 py-3 pr-4">Asset</th>
-            <th class="whitespace-nowrap px-3 py-3 pr-4">Borrowed</th>
-            <th class="whitespace-nowrap px-3 py-3 pr-4">Returned</th>
-            <th class="whitespace-nowrap px-3 py-3 pr-4">Before</th>
-            <th class="whitespace-nowrap px-3 py-3">After</th>
+            <th class="px-6 py-3.5">Asset Code</th>
+            <th class="px-6 py-3.5">Borrowed</th>
+            <th class="px-6 py-3.5">Returned</th>
+            <th class="px-6 py-3.5">Initial Condition</th>
+            <th class="px-6 py-3.5 text-right">Return Condition</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100">
+        <tbody class="divide-y divide-slate-100 bg-white">
           {% for log in page_obj %}
-          <tr>
-            <td class="whitespace-nowrap px-3 py-3 pr-4 font-medium text-slate-900">{{ log.asset.asset_code }}</td>
-            <td class="whitespace-nowrap px-3 py-3 pr-4">{{ log.borrowed_at|date:"M d, H:i" }}</td>
-            <td class="whitespace-nowrap px-3 py-3 pr-4">{{ log.returned_at|date:"M d, H:i" }}</td>
-            <td class="whitespace-nowrap px-3 py-3 pr-4">{{ log.get_pre_condition_display }}</td>
-            <td class="whitespace-nowrap px-3 py-3">{{ log.get_post_condition_display }}</td>
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="whitespace-nowrap px-6 py-4 font-mono text-xs font-semibold text-indigo-700">
+              {{ log.asset.asset_code }}
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-xs text-slate-500 font-mono">
+              {{ log.borrowed_at|date:"M d, H:i" }}
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-xs text-slate-500 font-mono">
+              {{ log.returned_at|date:"M d, H:i" }}
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-xs text-slate-700">
+              <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                {{ log.get_pre_condition_display }}
+              </span>
+            </td>
+            <td class="whitespace-nowrap px-6 py-4 text-right text-xs">
+              <span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/10">
+                {{ log.get_post_condition_display }}
+              </span>
+            </td>
           </tr>
           {% empty %}
-          <tr><td colspan="5" class="py-6 text-center text-slate-500">No returned items yet.</td></tr>
+          <tr>
+            <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+              <svg class="mx-auto h-8 w-8 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <p class="mt-2 text-sm font-medium">No returned equipment logs recorded.</p>
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-    <div class="mt-4 flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+
+    <!-- Pagination Footer -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-slate-200/90 bg-slate-50/50 px-6 py-3.5 text-xs text-slate-600 gap-3">
       <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-      <div class="flex gap-2">
-        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="rounded-lg border border-slate-300 px-3 py-1 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">Prev</a>{% endif %}
-        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="rounded-lg border border-slate-300 px-3 py-1 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">Next</a>{% endif %}
+      <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" 
+           class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-50 shadow-soft-xs transition-colors">
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+          Previous
+        </a>
+        {% endif %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" 
+           class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-50 shadow-soft-xs transition-colors">
+          Next
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+        {% endif %}
       </div>
     </div>
   </div>
+
 </div>
 {% endblock %}

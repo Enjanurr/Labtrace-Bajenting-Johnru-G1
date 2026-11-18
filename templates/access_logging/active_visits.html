@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Active Visits Board{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header Card -->
+  <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Live Facilities Telemetry</span>
+          <span class="text-slate-300">&middot;</span>
+          <span class="text-xs text-slate-400">Refreshes every 30s</span>
+        </div>
+        <div class="mt-1 flex items-center gap-3">
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900">Active Visits Board</h1>
+          <span id="active-count" class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 ring-1 ring-inset ring-emerald-600/10">
+            {{ visits|length }}
+          </span>
+        </div>
+        <p class="mt-1 text-xs text-slate-500">Staff supervisory board for real-time facility attendance and emergency occupancy accounting.</p>
+      </div>
+
+      <!-- Lab Filter -->
+      <form method="get" class="flex items-center gap-2">
+        <select name="location" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-soft-xs focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+          <option value="">All Laboratories</option>
+          {% for loc in locations %}
+          <option value="{{ loc }}" {% if loc == location %}selected{% endif %}>{{ loc }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-soft-xs hover:bg-indigo-700 transition-colors">
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          Filter
+        </button>
+      </form>
+    </div>
+
+    <!-- Occupancy Pills Summary -->
+    <div class="mt-5 border-t border-slate-100 pt-4">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-1">Current Occupancy:</span>
+        {% for row in occupancy %}
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50/80 px-3 py-1 text-xs font-medium text-slate-700">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+          <span class="font-semibold text-slate-900">{{ row.lab_location }}</span>
+          <span class="rounded-full bg-white px-1.5 py-0.2 text-[10px] font-bold text-slate-600 border border-slate-200">{{ row.n }}</span>
+        </span>
+        {% empty %}
+        <span class="text-xs text-slate-400 italic">All laboratory facilities are currently vacant.</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Visits Table -->
+  <div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft-sm">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+        <thead class="bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <tr>
+            <th class="px-6 py-3.5">User</th>
+            <th class="px-6 py-3.5">Role</th>
+            <th class="px-6 py-3.5">Lab Location</th>
+            <th class="px-6 py-3.5">Session Purpose</th>
+            <th class="px-6 py-3.5">Check-In Time</th>
+            <th class="px-6 py-3.5 text-right">Staff Action</th>
+          </tr>
+        </thead>
+        <tbody id="active-rows" data-url="{{ request.get_full_path }}" class="divide-y divide-slate-100 bg-white">
+          {% include "access_logging/_active_rows.html" %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="border-t border-slate-100 bg-slate-50/50 px-6 py-3 text-xs text-slate-400">
+      * Table auto-refreshes every 30 seconds. Staff checkout forces closure of active sessions for users who forgot to check out.
+    </div>
+  </div>
+
+</div>
+{% endblock %}
