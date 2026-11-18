@@ -158,7 +158,7 @@ lab/
 │   ├── equipment/
 │   │   ├── asset_form.html
 │   │   ├── borrow.html
-│   │   ├── inventory.htm
+│   │   ├── inventory.html
 │   │   ├── my_equipment.html
 │   │   └── return.html
 │   ├── registration/
@@ -225,7 +225,14 @@ as the application database.
    python -m pip install -r requirements.txt
    ```
 
-3. Configure the PostgreSQL connection in the ignored local `.env` file:
+3. To rebuild the bundled Tailwind stylesheet, install Node.js and run:
+
+   ```shell
+   npm install
+   npm run build:css
+   ```
+
+4. Configure the PostgreSQL connection in the ignored local `.env` file:
 
    ```dotenv
    DB_NAME=your_database
@@ -239,7 +246,7 @@ as the application database.
    values appropriate to your PostgreSQL instance. The connection is set to
    `sslmode=require`. Keep real credentials out of source control.
 
-4. Apply migrations and start the development server:
+5. Apply migrations and start the development server:
 
    ```shell
    python manage.py migrate
@@ -258,19 +265,14 @@ relying on a change.
 
 ## Offline and deployment caveats
 
-- jQuery and a compiled Tailwind stylesheet are stored under `static/`, but
-  `templates/base.html` also loads `https://cdn.tailwindcss.com`. The current
-  pages therefore still make a network request and do not satisfy a strict
-  offline requirement.
+- jQuery and a compiled Tailwind stylesheet are stored under `static/`; the
+  application uses these local assets and does not require the Tailwind CDN.
 - The database is configured for PostgreSQL, which may be local but must be
   provisioned separately. File-based email and media storage are local.
 - `DEBUG` is enabled and `SECRET_KEY` has a development placeholder in the
   current settings. Configure secure deployment settings before exposing the
   application.
-- Equipment templates are in the shared template directory. The inventory
-  view requests `equipment/inventory.html`, while the current file is named
-  `templates/equipment/inventory.htm`; reconcile the filename or view before
-  using that page.
+- Equipment templates are in the shared template directory.
 - `requirements.txt` does not currently list Pillow even though equipment
   models use `ImageField`; verify/add the image dependency before using
   condition-image uploads.
