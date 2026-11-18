@@ -1,94 +1,184 @@
 {% extends "base.html" %}
-{% block title %}Equipment{% endblock %}
+{% block title %}Equipment Inventory{% endblock %}
 
 {% block content %}
-<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <div>
-      <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Lab resources</p>
-      <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900">Equipment inventory</h1>
-    </div>
-    <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-      <a href="{% url 'equipment:borrow' %}" class="inline-flex justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:text-purple-200 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Borrow equipment</a>
-      {% if user.is_staff_role %}
-      <a href="{% url 'equipment:asset_new' %}" class="inline-flex justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">Add asset</a>
-      {% endif %}
-    </div>
-  </div>
+<div class="space-y-6">
 
-  <form method="get" class="mt-6 grid gap-3 border-y border-slate-100 py-5 text-sm sm:grid-cols-[minmax(12rem,1fr)_minmax(10rem,auto)_auto_auto] sm:items-end">
-    <input type="text" name="q" value="{{ q }}" placeholder="Search code or name"
-           class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100">
-    <select name="status" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100">
-      <option value="">Any status</option>
-      {% for value, label in statuses %}
-      <option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
-    <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2.5 font-semibold text-white shadow-sm transition hover:text-purple-200 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Filter</button>
-    <a href="{% url 'equipment:inventory' %}" class="inline-flex justify-center px-2 py-2.5 text-slate-500 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Reset</a>
-  </form>
+  <!-- Header Card -->
+  <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm sm:p-8">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Hardware Catalog</span>
+          <span class="text-xs text-slate-300">&middot;</span>
+          <span class="text-xs text-slate-500">{{ page_obj.paginator.count }} Total Assets</span>
+        </div>
+        <h1 class="mt-1 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Equipment Inventory</h1>
+        <p class="mt-1 text-xs sm:text-sm text-slate-500">Track availability status, examine current borrowers, and manage laboratory hardware assets.</p>
+      </div>
 
-  <div class="mt-4 overflow-x-auto">
-    <table class="min-w-full text-left text-sm">
-      <thead class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-        <tr>
-          <th class="whitespace-nowrap px-3 py-3 pr-4">Code</th>
-          <th class="whitespace-nowrap px-3 py-3 pr-4">Name</th>
-          <th class="whitespace-nowrap px-3 py-3 pr-4">Status</th>
-          <th class="whitespace-nowrap px-3 py-3 pr-4">Held by</th>
-          <th class="whitespace-nowrap px-3 py-3">Action</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-slate-100">
-        {% for a in page_obj %}
-        <tr>
-          <td class="whitespace-nowrap px-3 py-3 pr-4 font-medium text-slate-900">{{ a.asset_code }}</td>
-          <td class="px-3 py-3 pr-4">{{ a.name }}</td>
-          <td class="whitespace-nowrap px-3 py-3 pr-4">
-            {% if a.availability_status == 'AVAILABLE' %}
-            <span class="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">Available</span>
-            {% elif a.availability_status == 'BORROWED' %}
-            <span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">Borrowed</span>
-            {% elif a.availability_status == 'MAINTENANCE' %}
-            <span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">Maintenance</span>
-            {% else %}
-            <span class="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">Missing</span>
-            {% endif %}
-          </td>
-          <td class="px-3 py-3 pr-4">
-            {% if a.open_log %}
-              {{ a.open_log.visit.user.username }}
-              <span class="text-xs text-slate-500">since {{ a.open_log.borrowed_at|date:"M d, H:i" }}</span>
-            {% else %}-{% endif %}
-          </td>
-          <td class="px-3 py-3">
-            <div class="flex gap-3 text-xs font-medium">
-              {% if a.availability_status == 'AVAILABLE' %}
-              <a href="{% url 'equipment:borrow' %}?asset={{ a.pk }}" class="text-indigo-600 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Borrow</a>
-              {% endif %}
-              {% if a.open_log and user.is_staff_role %}
-              <a href="{% url 'equipment:return' a.open_log.pk %}" class="text-green-700 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Return</a>
-              {% endif %}
-              {% if user.is_staff_role %}
-              <a href="{% url 'equipment:asset_edit' a.pk %}" class="text-slate-600 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Edit</a>
-              {% endif %}
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5" class="py-6 text-center text-slate-500">No equipment found.</td></tr>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <a href="{% url 'equipment:borrow' %}" 
+           class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-soft-xs shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          Borrow Equipment
+        </a>
+        {% if user.is_staff_role %}
+        <a href="{% url 'equipment:asset_new' %}" 
+           class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+          <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Asset
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Search & Status Filter Toolbar -->
+    <form method="get" class="mt-6 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-5">
+      <div class="relative min-w-[240px] flex-1">
+        <svg class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" name="q" value="{{ q }}" placeholder="Search by asset code or equipment name..."
+               class="w-full rounded-xl border border-slate-300 bg-white py-2 pl-9 pr-3 text-xs text-slate-900 placeholder-slate-400 shadow-soft-xs focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+      </div>
+
+      <select name="status" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-soft-xs focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+        <option value="">Any Status</option>
+        {% for value, label in statuses %}
+        <option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
-      </tbody>
-    </table>
+      </select>
+
+      <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-soft-xs hover:bg-indigo-700 transition-colors">
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filter
+      </button>
+
+      {% if q or status %}
+      <a href="{% url 'equipment:inventory' %}" class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+        Reset
+      </a>
+      {% endif %}
+    </form>
   </div>
 
-  <div class="mt-4 flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} items)</span>
-    <div class="flex gap-2">
-      {% if page_obj.has_previous %}<a href="?{{ querystring }}&page={{ page_obj.previous_page_number }}" class="rounded-lg border border-slate-300 px-3 py-1 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">Prev</a>{% endif %}
-      {% if page_obj.has_next %}<a href="?{{ querystring }}&page={{ page_obj.next_page_number }}" class="rounded-lg border border-slate-300 px-3 py-1 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">Next</a>{% endif %}
+  <!-- Inventory Table Card -->
+  <div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft-sm">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+        <thead class="bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <tr>
+            <th class="px-6 py-3.5">Asset Code</th>
+            <th class="px-6 py-3.5">Equipment Name</th>
+            <th class="px-6 py-3.5">Availability Status</th>
+            <th class="px-6 py-3.5">Current Holder</th>
+            <th class="px-6 py-3.5 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 bg-white">
+          {% for a in page_obj %}
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <!-- Code -->
+            <td class="whitespace-nowrap px-6 py-4 font-mono text-xs font-bold text-indigo-700">
+              {{ a.asset_code }}
+            </td>
+
+            <!-- Name -->
+            <td class="px-6 py-4 font-semibold text-slate-900 text-xs">
+              {{ a.name }}
+            </td>
+
+            <!-- Status Pill -->
+            <td class="whitespace-nowrap px-6 py-4">
+              {% if a.availability_status == 'AVAILABLE' %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/10">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                Available
+              </span>
+              {% elif a.availability_status == 'BORROWED' %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/10">
+                <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                Borrowed
+              </span>
+              {% elif a.availability_status == 'MAINTENANCE' %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/10">
+                <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                Maintenance
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/10">
+                <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
+                Missing
+              </span>
+              {% endif %}
+            </td>
+
+            <!-- Held By -->
+            <td class="whitespace-nowrap px-6 py-4 text-xs text-slate-600">
+              {% if a.open_log %}
+                <span class="font-medium text-slate-900">{{ a.open_log.visit.user.username }}</span>
+                <span class="text-[11px] text-slate-400 block">since {{ a.open_log.borrowed_at|date:"M d, H:i" }}</span>
+              {% else %}
+                <span class="text-slate-400">—</span>
+              {% endif %}
+            </td>
+
+            <!-- Action Buttons -->
+            <td class="whitespace-nowrap px-6 py-4 text-right">
+              <div class="inline-flex items-center gap-2">
+                {% if a.availability_status == 'AVAILABLE' %}
+                <a href="{% url 'equipment:borrow' %}?asset={{ a.pk }}" 
+                   class="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors">
+                  Borrow
+                </a>
+                {% endif %}
+                {% if a.open_log and user.is_staff_role %}
+                <a href="{% url 'equipment:return' a.open_log.pk %}" 
+                   class="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors">
+                  Return
+                </a>
+                {% endif %}
+                {% if user.is_staff_role %}
+                <a href="{% url 'equipment:asset_edit' a.pk %}" 
+                   class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                  Edit
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+              <svg class="mx-auto h-8 w-8 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              <p class="mt-2 text-sm font-medium">No equipment found matching criteria.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-slate-200/90 bg-slate-50/50 px-6 py-3.5 text-xs text-slate-600 gap-3">
+      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} assets)</span>
+      <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?{{ querystring }}&page={{ page_obj.previous_page_number }}" 
+           class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-50 shadow-soft-xs transition-colors">
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+          Previous
+        </a>
+        {% endif %}
+        {% if page_obj.has_next %}
+        <a href="?{{ querystring }}&page={{ page_obj.next_page_number }}" 
+           class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-50 shadow-soft-xs transition-colors">
+          Next
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+        {% endif %}
+      </div>
     </div>
   </div>
+
 </div>
 {% endblock %}

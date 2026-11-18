@@ -2,17 +2,86 @@
 {% block title %}Researcher Dashboard{% endblock %}
 
 {% block content %}
-<div class="mx-auto max-w-6xl">
-  <div class="mb-8">
-    <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Overview</p>
-    <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">Researcher Dashboard</h1>
-    <p class="mt-2 text-sm text-slate-500">Welcome, {{ user.first_name|default:user.email }}. Log your research sessions and equipment.</p>
+<div class="space-y-8">
+  
+  <!-- Header Card -->
+  <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm sm:p-8">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-600/10">
+            Laboratory Researcher
+          </span>
+          <span class="text-xs text-slate-400">&middot;</span>
+          <span class="text-xs text-slate-500">Authorized Investigator</span>
+        </div>
+        <h1 class="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+          Welcome back, {{ user.first_name|default:user.username }}
+        </h1>
+        <p class="mt-1 text-xs sm:text-sm text-slate-500">
+          Check in for laboratory sessions, borrow precision apparatus, and log research safety observations.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <a href="{% url 'access_logging:check_in' %}" 
+           class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-soft-xs shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Check In Now
+        </a>
+        <a href="{% url 'equipment:mine' %}" 
+           class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+          <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+          My Instruments
+        </a>
+      </div>
+    </div>
   </div>
 
-  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><p class="font-semibold text-slate-800">Research check-in</p><p class="mt-2 text-sm leading-6 text-slate-500">Log a research session <span class="text-slate-400">(Phase 4)</span></p></div>
-    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><p class="font-semibold text-slate-800">Borrowed instruments</p><p class="mt-2 text-sm leading-6 text-slate-500">View research equipment <span class="text-slate-400">(Phase 5)</span></p></div>
-    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><p class="font-semibold text-slate-800">Incident reports</p><p class="mt-2 text-sm leading-6 text-slate-500">Review your submissions <span class="text-slate-400">(Phase 6)</span></p></div>
+  <!-- Operational Hub Cards -->
+  <div class="grid gap-6 md:grid-cols-3">
+    <!-- Research Check-In -->
+    <a href="{% url 'access_logging:check_in' %}" 
+       class="group rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm transition-all duration-200 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-soft-lg">
+      <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <h3 class="mt-4 text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Research Check-in</h3>
+      <p class="mt-1 text-xs text-slate-500 leading-relaxed">Start an authorized research session by logging the target laboratory room and investigation purpose.</p>
+      <div class="mt-4 flex items-center gap-1 text-xs font-semibold text-indigo-600">
+        <span>Log access session</span>
+        <svg class="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </div>
+    </a>
+
+    <!-- Borrowed Instruments -->
+    <a href="{% url 'equipment:inventory' %}" 
+       class="group rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm transition-all duration-200 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-soft-lg">
+      <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </div>
+      <h3 class="mt-4 text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Precision Instruments</h3>
+      <p class="mt-1 text-xs text-slate-500 leading-relaxed">Browse hardware catalog, checkout measurement apparatus, and submit photographic condition reports.</p>
+      <div class="mt-4 flex items-center gap-1 text-xs font-semibold text-blue-600">
+        <span>Browse catalog</span>
+        <svg class="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </div>
+    </a>
+
+    <!-- Incident Reports -->
+    <a href="{% url 'incidents:list' %}" 
+       class="group rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm transition-all duration-200 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-soft-lg">
+      <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <h3 class="mt-4 text-base font-bold text-slate-900 group-hover:text-amber-600 transition-colors">Incident Reports</h3>
+      <p class="mt-1 text-xs text-slate-500 leading-relaxed">Submit immediate reports for damaged hardware, safety breaches, or chemical contamination.</p>
+      <div class="mt-4 flex items-center gap-1 text-xs font-semibold text-amber-600">
+        <span>View incident log</span>
+        <svg class="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </div>
+    </a>
   </div>
+
 </div>
 {% endblock %}

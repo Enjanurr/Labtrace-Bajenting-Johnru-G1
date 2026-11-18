@@ -1,49 +1,125 @@
 {% extends "base.html" %}
-{% block title %}Incidents{% endblock %}
+{% block title %}Incidents Desk{% endblock %}
 
 {% block content %}
-<div class="mx-auto max-w-6xl px-4 py-10">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <div>
-      <h1 class="text-2xl font-bold text-slate-900">{% if staff %}All incidents{% else %}My incidents{% endif %}</h1>
-      <p class="text-sm text-slate-500">{{ incidents|length }} shown</p>
+<div class="space-y-6">
+
+  <!-- Header Card -->
+  <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm sm:p-8">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Safety &amp; Compliance</span>
+          <span class="text-xs text-slate-300">&middot;</span>
+          <span class="text-xs text-slate-500">{{ incidents|length }} Incident{{ incidents|length|pluralize }} Recorded</span>
+        </div>
+        <h1 class="mt-1 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+          {% if staff %}Laboratory Incidents Desk{% else %}My Incident Reports{% endif %}
+        </h1>
+        <p class="mt-1 text-xs sm:text-sm text-slate-500">
+          {% if staff %}Review reported laboratory occurrences, assign investigations, and record corrective measures.{% else %}Track status updates and review resolution outcomes for your filed incident reports.{% endif %}
+        </p>
+      </div>
+
+      <div>
+        <a href="{% url 'incidents:new' %}" 
+           class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-soft-xs shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Report Incident
+        </a>
+      </div>
     </div>
-    <a href="{% url 'incidents:new' %}" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Report incident</a>
-  </div>
 
-  <form method="get" class="mt-6">
-    <select name="status" onchange="this.form.submit()" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
-      <option value="">All statuses</option>
-      {% for value, label in status_choices %}
-      <option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
-  </form>
-
-  <div class="mt-4 overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-    <table class="min-w-full divide-y divide-slate-200 text-sm">
-      <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
-        <tr>
-          <th class="px-4 py-3">Ref</th><th class="px-4 py-3">Title</th>
-          {% if staff %}<th class="px-4 py-3">Reporter</th>{% endif %}
-          <th class="px-4 py-3">Severity</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Reported</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-slate-100">
-        {% for i in incidents %}
-        <tr class="hover:bg-slate-50">
-          <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ i.reference }}</td>
-          <td class="px-4 py-3"><a href="{% url 'incidents:detail' i.pk %}" class="font-medium text-indigo-600 hover:underline">{{ i.title }}</a></td>
-          {% if staff %}<td class="px-4 py-3">{{ i.reporter.get_full_name|default:i.reporter.email }}</td>{% endif %}
-          <td class="px-4 py-3">{{ i.get_severity_display }}</td>
-          <td class="px-4 py-3">{% include "incidents/_status_badge.html" with status=i.status %}</td>
-          <td class="px-4 py-3 text-slate-500">{{ i.created_at|date:"M d, Y H:i" }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6" class="px-4 py-10 text-center text-slate-400">No incidents found.</td></tr>
+    <!-- Status Filter Toolbar -->
+    <form method="get" class="mt-6 flex items-center gap-3 border-t border-slate-100 pt-5">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Filter Status:</span>
+      <select name="status" onchange="this.form.submit()" 
+              class="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-soft-xs focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+        <option value="">All Statuses</option>
+        {% for value, label in status_choices %}
+        <option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
-      </tbody>
-    </table>
+      </select>
+
+      {% if current_status %}
+      <a href="{% url 'incidents:list' %}" class="text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
+        Reset
+      </a>
+      {% endif %}
+    </form>
   </div>
+
+  <!-- Incident Records Table -->
+  <div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft-sm">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+        <thead class="bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <tr>
+            <th class="px-6 py-3.5">Reference</th>
+            <th class="px-6 py-3.5">Incident Title</th>
+            {% if staff %}<th class="px-6 py-3.5">Reporter</th>{% endif %}
+            <th class="px-6 py-3.5">Severity</th>
+            <th class="px-6 py-3.5">Current Status</th>
+            <th class="px-6 py-3.5 text-right">Filed Date</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 bg-white">
+          {% for i in incidents %}
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <!-- Ref -->
+            <td class="whitespace-nowrap px-6 py-4">
+              <span class="font-mono text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                {{ i.reference }}
+              </span>
+            </td>
+
+            <!-- Title -->
+            <td class="px-6 py-4">
+              <a href="{% url 'incidents:detail' i.pk %}" class="font-semibold text-slate-900 hover:text-indigo-600 text-xs transition-colors">
+                {{ i.title }}
+              </a>
+            </td>
+
+            <!-- Reporter (if staff) -->
+            {% if staff %}
+            <td class="whitespace-nowrap px-6 py-4 text-xs text-slate-600">
+              <span class="font-medium text-slate-900">{{ i.reporter.get_full_name|default:i.reporter.email }}</span>
+            </td>
+            {% endif %}
+
+            <!-- Severity -->
+            <td class="whitespace-nowrap px-6 py-4 text-xs font-medium">
+              {% if i.severity == "CRITICAL" or i.severity == "HIGH" %}
+              <span class="text-rose-600 font-semibold">{{ i.get_severity_display }}</span>
+              {% elif i.severity == "MEDIUM" %}
+              <span class="text-amber-600 font-semibold">{{ i.get_severity_display }}</span>
+              {% else %}
+              <span class="text-slate-600">{{ i.get_severity_display }}</span>
+              {% endif %}
+            </td>
+
+            <!-- Status Badge -->
+            <td class="whitespace-nowrap px-6 py-4">
+              {% include "incidents/_status_badge.html" with status=i.status %}
+            </td>
+
+            <!-- Reported Date -->
+            <td class="whitespace-nowrap px-6 py-4 text-right text-xs text-slate-500 font-mono">
+              {{ i.created_at|date:"M d, Y H:i" }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="{% if staff %}6{% else %}5{% endif %}" class="px-6 py-12 text-center text-slate-400">
+              <svg class="mx-auto h-8 w-8 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <p class="mt-2 text-sm font-medium">No incidents logged matching criteria.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

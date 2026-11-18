@@ -1,120 +1,353 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Central dashboard{% endblock %}
+{% block title %}Central Laboratory Dashboard{% endblock %}
 
 {% block content %}
-<div id="central-dashboard" data-live-url="{% url 'dashboard:central_data' %}" data-interval="15000"
-     class="mx-auto max-w-6xl space-y-8 px-4 py-10">
+<div id="central-dashboard" data-live-url="{% url 'dashboard:central_data' %}" data-interval="15000" class="space-y-8">
 
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <div>
-      <h1 class="text-2xl font-bold text-slate-900">Central laboratory dashboard</h1>
-      <p class="text-sm text-slate-500">
-        <span id="live-status" class="font-semibold text-green-600">Live</span> ·
-        refreshes every 15 s · last updated <span id="last-updated">just now</span>
-      </p>
+  <!-- Header & Live Telemetry Status -->
+  <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm sm:p-8">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          <span id="live-status" class="text-xs font-bold uppercase tracking-wider text-emerald-600">Live Telemetry</span>
+          <span class="text-slate-300">&middot;</span>
+          <span class="text-xs text-slate-400">Refreshes every 15s</span>
+          <span class="text-slate-300">&middot;</span>
+          <span class="text-xs text-slate-500">Last updated <span id="last-updated" class="font-medium text-slate-700">just now</span></span>
+        </div>
+        <h1 class="mt-1 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Central Laboratory Operations</h1>
+        <p class="mt-1 text-xs sm:text-sm text-slate-500">Real-time facility occupancy, hardware circulation telemetry, and incident dispatch monitoring.</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="{% url 'dashboard:audit' %}" 
+           class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-soft-xs hover:bg-slate-50 hover:border-slate-300 transition-colors">
+          <svg class="h-4 w-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          Audit trail
+        </a>
+      </div>
     </div>
-    <a href="{% url 'dashboard:audit' %}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">Open audit trail</a>
   </div>
 
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-    <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200"><p class="text-sm text-slate-500">Inside now</p><p id="total-inside" class="mt-1 text-3xl font-bold text-indigo-600">{{ total_inside }}</p></div>
-    <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200"><p class="text-sm text-slate-500">Labs in use</p><p id="labs-in-use" class="mt-1 text-3xl font-bold text-slate-800">{{ occupancy|length }}</p></div>
-    <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200"><p class="text-sm text-slate-500">Items borrowed</p><p id="items-borrowed" class="mt-1 text-3xl font-bold text-slate-800">{{ metrics.active_loans }}</p></div>
-    <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200"><p class="text-sm text-slate-500">Unresolved incidents</p><p id="unresolved-count" class="mt-1 text-3xl font-bold text-amber-600">{{ incidents.total }}</p></div>
+  <!-- Primary Metric Stat Cards -->
+  <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <!-- Total Inside -->
+    <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft-md">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Active Occupancy</span>
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+      </div>
+      <p id="total-inside" class="mt-4 text-3xl font-extrabold tracking-tight text-indigo-600">{{ total_inside }}</p>
+      <p class="mt-1 text-xs text-slate-500">Individuals inside facilities</p>
+    </div>
+
+    <!-- Labs in Use -->
+    <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft-md">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Labs In Use</span>
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+      </div>
+      <p id="labs-in-use" class="mt-4 text-3xl font-extrabold tracking-tight text-slate-900">{{ occupancy|length }}</p>
+      <p class="mt-1 text-xs text-slate-500">Rooms with active sessions</p>
+    </div>
+
+    <!-- Items Borrowed -->
+    <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft-md">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Active Loans</span>
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </div>
+      </div>
+      <p id="items-borrowed" class="mt-4 text-3xl font-extrabold tracking-tight text-slate-900">{{ metrics.active_loans }}</p>
+      <p class="mt-1 text-xs text-slate-500">Items checked out by students/staff</p>
+    </div>
+
+    <!-- Unresolved Incidents -->
+    <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft-md">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Open Incidents</span>
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+      </div>
+      <p id="unresolved-count" class="mt-4 text-3xl font-extrabold tracking-tight text-amber-600">{{ incidents.total }}</p>
+      <p class="mt-1 text-xs text-slate-500">Requires review or investigation</p>
+    </div>
   </div>
 
+  <!-- Operational Telemetry Overview (2 Columns) -->
   <div class="grid gap-6 lg:grid-cols-2">
-    <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-      <h2 class="px-4 pt-4 text-lg font-semibold text-slate-900">Occupancy by lab</h2>
-      <table class="mt-3 min-w-full divide-y divide-slate-200 text-sm">
-        <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th class="px-4 py-2">Lab</th><th class="px-4 py-2 text-right">People inside</th></tr></thead>
-        <tbody id="occupancy-body" class="divide-y divide-slate-100">
-          {% for row in occupancy %}<tr><td class="px-4 py-2">{{ row.lab }}</td><td class="px-4 py-2 text-right font-semibold">{{ row.count }}</td></tr>
-          {% empty %}<tr><td colspan="2" class="px-4 py-6 text-center text-slate-400">Nobody is checked in.</td></tr>{% endfor %}
+    <!-- Occupancy by Lab -->
+    <div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft-sm">
+      <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Occupancy by Laboratory Room</h2>
+        <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">Active</span>
+      </div>
+      <table class="min-w-full divide-y divide-slate-100 text-left text-sm">
+        <thead class="bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <tr>
+            <th class="px-6 py-3">Facility Location</th>
+            <th class="px-6 py-3 text-right">Count</th>
+          </tr>
+        </thead>
+        <tbody id="occupancy-body" class="divide-y divide-slate-100 bg-white">
+          {% for row in occupancy %}
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="px-6 py-3 font-medium text-slate-900">{{ row.lab }}</td>
+            <td class="px-6 py-3 text-right font-bold text-indigo-600">{{ row.count }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="2" class="px-6 py-8 text-center text-xs text-slate-400">Nobody is currently checked in.</td>
+          </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
 
-    <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-      <h2 class="px-4 pt-4 text-lg font-semibold text-slate-900">Equipment availability</h2>
-      <table class="mt-3 min-w-full divide-y divide-slate-200 text-sm">
-        <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th class="px-4 py-2">Status</th><th class="px-4 py-2 text-right">Assets</th></tr></thead>
-        <tbody id="asset-body" class="divide-y divide-slate-100">
-          {% for row in asset_summary %}<tr><td class="px-4 py-2">{{ row.label }}</td><td class="px-4 py-2 text-right font-semibold">{{ row.count }}</td></tr>
-          {% empty %}<tr><td colspan="2" class="px-4 py-6 text-center text-slate-400">No assets registered.</td></tr>{% endfor %}
+    <!-- Equipment Availability -->
+    <div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft-sm">
+      <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Hardware Asset Distribution</h2>
+        <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">Inventory</span>
+      </div>
+      <table class="min-w-full divide-y divide-slate-100 text-left text-sm">
+        <thead class="bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <tr>
+            <th class="px-6 py-3">Status Label</th>
+            <th class="px-6 py-3 text-right">Registered Assets</th>
+          </tr>
+        </thead>
+        <tbody id="asset-body" class="divide-y divide-slate-100 bg-white">
+          {% for row in asset_summary %}
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="px-6 py-3 font-medium text-slate-900">{{ row.label }}</td>
+            <td class="px-6 py-3 text-right font-bold text-slate-800">{{ row.count }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="2" class="px-6 py-8 text-center text-xs text-slate-400">No assets registered in catalog.</td>
+          </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
 
-  <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-    <h2 class="text-lg font-semibold text-slate-900">Equipment usage <span class="text-sm font-normal text-slate-400">(last {{ metrics.days }} days)</span></h2>
-    <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <div><p class="text-sm text-slate-500">Total assets</p><p id="stat-total-assets" class="text-2xl font-bold text-slate-800">—</p></div>
-      <div><p class="text-sm text-slate-500">Borrowed today</p><p id="stat-borrowed-today" class="text-2xl font-bold text-slate-800">{{ metrics.borrowed_today }}</p></div>
-      <div><p class="text-sm text-slate-500">Returned today</p><p id="stat-returned-today" class="text-2xl font-bold text-slate-800">{{ metrics.returned_today }}</p></div>
-      <div><p class="text-sm text-slate-500">Average loan time</p><p id="stat-avg-loan" class="text-2xl font-bold text-slate-800">—</p></div>
+  <!-- Circulation Metrics Banner -->
+  <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm sm:p-8">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+      <div>
+        <h2 class="text-base font-bold text-slate-900">Equipment Usage Telemetry</h2>
+        <p class="text-xs text-slate-500">Circulation records from the last {{ metrics.days }} rolling days.</p>
+      </div>
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-600/10">
+        {{ metrics.days }} Day Window
+      </span>
+    </div>
+
+    <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Asset Pool</span>
+        <p id="stat-total-assets" class="mt-2 text-2xl font-extrabold text-slate-900">—</p>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Borrowed Today</span>
+        <p id="stat-borrowed-today" class="mt-2 text-2xl font-extrabold text-blue-600">{{ metrics.borrowed_today }}</p>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Returned Today</span>
+        <p id="stat-returned-today" class="mt-2 text-2xl font-extrabold text-emerald-600">{{ metrics.returned_today }}</p>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Avg Loan Duration</span>
+        <p id="stat-avg-loan" class="mt-2 text-2xl font-extrabold text-indigo-600">—</p>
+      </div>
     </div>
   </div>
 
+  <!-- Tri-Grid Conditions & Popular Assets -->
   <div class="grid gap-6 lg:grid-cols-3">
-    <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-      <h2 class="px-4 pt-4 text-lg font-semibold text-slate-900">Condition: on loan now</h2>
-      <table class="mt-3 min-w-full text-sm"><tbody id="cond-loan-body" class="divide-y divide-slate-100">
-        {% for r in metrics.on_loan_condition %}<tr><td class="px-4 py-2">{{ r.label }}</td><td class="px-4 py-2 text-right font-semibold">{{ r.count }}</td></tr>
-        {% empty %}<tr><td colspan="2" class="px-4 py-6 text-center text-slate-400">Nothing on loan.</td></tr>{% endfor %}
-      </tbody></table>
+    <!-- On Loan Condition -->
+    <div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft-sm">
+      <div class="border-b border-slate-100 px-6 py-4">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">Condition: On Loan Now</h2>
+      </div>
+      <table class="min-w-full text-left text-sm">
+        <tbody id="cond-loan-body" class="divide-y divide-slate-100">
+          {% for r in metrics.on_loan_condition %}
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="px-6 py-3 text-xs font-medium text-slate-800">{{ r.label }}</td>
+            <td class="px-6 py-3 text-right text-xs font-bold text-slate-900">{{ r.count }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="2" class="px-6 py-6 text-center text-xs text-slate-400">Nothing on loan.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-    <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-      <h2 class="px-4 pt-4 text-lg font-semibold text-slate-900">Condition: recent returns</h2>
-      <table class="mt-3 min-w-full text-sm"><tbody id="cond-return-body" class="divide-y divide-slate-100">
-        {% for r in metrics.returned_condition %}<tr><td class="px-4 py-2">{{ r.label }}</td><td class="px-4 py-2 text-right font-semibold">{{ r.count }}</td></tr>
-        {% empty %}<tr><td colspan="2" class="px-4 py-6 text-center text-slate-400">No recent returns.</td></tr>{% endfor %}
-      </tbody></table>
+
+    <!-- Recent Returns Condition -->
+    <div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft-sm">
+      <div class="border-b border-slate-100 px-6 py-4">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">Condition: Recent Returns</h2>
+      </div>
+      <table class="min-w-full text-left text-sm">
+        <tbody id="cond-return-body" class="divide-y divide-slate-100">
+          {% for r in metrics.returned_condition %}
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="px-6 py-3 text-xs font-medium text-slate-800">{{ r.label }}</td>
+            <td class="px-6 py-3 text-right text-xs font-bold text-slate-900">{{ r.count }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="2" class="px-6 py-6 text-center text-xs text-slate-400">No recent returns.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-    <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-      <h2 class="px-4 pt-4 text-lg font-semibold text-slate-900">Most borrowed</h2>
-      <table class="mt-3 min-w-full text-sm"><tbody id="top-assets-body" class="divide-y divide-slate-100">
-        {% for r in metrics.top_assets %}<tr><td class="px-4 py-2">{{ r.name }}</td><td class="px-4 py-2 text-right font-semibold">{{ r.count }}</td></tr>
-        {% empty %}<tr><td colspan="2" class="px-4 py-6 text-center text-slate-400">No borrowing yet.</td></tr>{% endfor %}
-      </tbody></table>
+
+    <!-- Most Borrowed -->
+    <div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft-sm">
+      <div class="border-b border-slate-100 px-6 py-4">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">Most Borrowed Assets</h2>
+      </div>
+      <table class="min-w-full text-left text-sm">
+        <tbody id="top-assets-body" class="divide-y divide-slate-100">
+          {% for r in metrics.top_assets %}
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="px-6 py-3 text-xs font-medium text-slate-800">{{ r.name }}</td>
+            <td class="px-6 py-3 text-right text-xs font-bold text-slate-900">{{ r.count }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="2" class="px-6 py-6 text-center text-xs text-slate-400">No borrowing activity recorded.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-    <h2 class="px-4 pt-4 text-lg font-semibold text-slate-900">Active lab visits</h2>
-    <div class="overflow-x-auto"><table class="mt-3 min-w-full divide-y divide-slate-200 text-sm">
-      <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th class="px-4 py-2">User</th><th class="px-4 py-2">Lab</th><th class="px-4 py-2">Purpose</th><th class="px-4 py-2">Since</th></tr></thead>
-      <tbody id="visits-body" class="divide-y divide-slate-100">
-        {% for v in visits %}<tr><td class="px-4 py-2">{{ v.user.get_full_name|default:v.user.email }}</td><td class="px-4 py-2">{{ v.lab }}</td><td class="px-4 py-2">{{ v.purpose }}</td><td class="px-4 py-2 text-slate-500">{{ v.since|date:"M d, H:i" }}</td></tr>
-        {% empty %}<tr><td colspan="4" class="px-4 py-6 text-center text-slate-400">No active visits.</td></tr>{% endfor %}
-      </tbody>
-    </table></div>
-  </div>
-
-  <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-    <h2 class="px-4 pt-4 text-lg font-semibold text-slate-900">Borrowed equipment and current borrowers</h2>
-    <div class="overflow-x-auto"><table class="mt-3 min-w-full divide-y divide-slate-200 text-sm">
-      <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th class="px-4 py-2">Asset</th><th class="px-4 py-2">Borrower</th><th class="px-4 py-2">Lab</th><th class="px-4 py-2">Borrowed</th></tr></thead>
-      <tbody id="borrowers-body" class="divide-y divide-slate-100">
-        {% for b in borrowers %}<tr><td class="px-4 py-2 font-medium">{{ b.asset_name }}</td><td class="px-4 py-2">{{ b.borrower.get_full_name|default:b.borrower.email }}</td><td class="px-4 py-2">{{ b.lab }}</td><td class="px-4 py-2 text-slate-500">{{ b.since|date:"M d, H:i" }}</td></tr>
-        {% empty %}<tr><td colspan="4" class="px-4 py-6 text-center text-slate-400">Nothing is currently borrowed.</td></tr>{% endfor %}
-      </tbody>
-    </table></div>
-  </div>
-
-  <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-    <div class="flex items-center justify-between">
-      <h2 class="text-lg font-semibold text-slate-900">Unresolved incidents</h2>
-      <a href="{% url 'incidents:list' %}" class="text-sm font-medium text-indigo-600 hover:underline">View all</a>
+  <!-- Active Visits Board -->
+  <div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft-sm">
+    <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+      <div>
+        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Active Laboratory Visits</h2>
+        <p class="text-xs text-slate-500">Live roster of users actively present inside laboratory locations.</p>
+      </div>
+      <a href="{% url 'access_logging:active' %}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
+        Full Staff Board &rarr;
+      </a>
     </div>
-    <p class="mt-1 text-sm text-slate-500"><span id="incident-reported">{{ incidents.reported }}</span> reported · <span id="incident-investigation">{{ incidents.investigation }}</span> under investigation</p>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+        <thead class="bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <tr>
+            <th class="px-6 py-3.5">User</th>
+            <th class="px-6 py-3.5">Laboratory Room</th>
+            <th class="px-6 py-3.5">Visit Purpose</th>
+            <th class="px-6 py-3.5">Present Since</th>
+          </tr>
+        </thead>
+        <tbody id="visits-body" class="divide-y divide-slate-100 bg-white">
+          {% for v in visits %}
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="px-6 py-3.5 font-medium text-slate-900">{{ v.user.get_full_name|default:v.user.email }}</td>
+            <td class="px-6 py-3.5 font-medium text-slate-700">{{ v.lab }}</td>
+            <td class="px-6 py-3.5 text-slate-600">{{ v.purpose }}</td>
+            <td class="px-6 py-3.5 text-xs text-slate-500">{{ v.since|date:"M d, H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="px-6 py-8 text-center text-xs text-slate-400">No active visits recorded at this moment.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Borrowed Equipment Board -->
+  <div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft-sm">
+    <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+      <div>
+        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Circulating Hardware Assets</h2>
+        <p class="text-xs text-slate-500">Equipment currently signed out by laboratory attendees.</p>
+      </div>
+      <a href="{% url 'equipment:inventory' %}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
+        View Inventory &rarr;
+      </a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+        <thead class="bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <tr>
+            <th class="px-6 py-3.5">Asset</th>
+            <th class="px-6 py-3.5">Current Borrower</th>
+            <th class="px-6 py-3.5">Assigned Lab</th>
+            <th class="px-6 py-3.5">Borrowed At</th>
+          </tr>
+        </thead>
+        <tbody id="borrowers-body" class="divide-y divide-slate-100 bg-white">
+          {% for b in borrowers %}
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="px-6 py-3.5 font-semibold text-slate-900">{{ b.asset_name }}</td>
+            <td class="px-6 py-3.5 font-medium text-slate-700">{{ b.borrower.get_full_name|default:b.borrower.email }}</td>
+            <td class="px-6 py-3.5 text-slate-600">{{ b.lab }}</td>
+            <td class="px-6 py-3.5 text-xs text-slate-500">{{ b.since|date:"M d, H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="px-6 py-8 text-center text-xs text-slate-400">Nothing is currently borrowed.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Incident Telemetry Card -->
+  <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm sm:p-8">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+      <div>
+        <h2 class="text-base font-bold text-slate-900">Unresolved Incidents Dispatch</h2>
+        <p class="text-xs text-slate-500">
+          <span id="incident-reported" class="font-semibold text-amber-600">{{ incidents.reported }}</span> reported &middot; 
+          <span id="incident-investigation" class="font-semibold text-blue-600">{{ incidents.investigation }}</span> under investigation
+        </p>
+      </div>
+      <a href="{% url 'incidents:list' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
+        <span>Incident Desk</span>
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+    </div>
+
     <ul class="mt-4 divide-y divide-slate-100 text-sm">
-      {% for i in incidents.latest %}<li class="flex justify-between py-2"><a href="{% url 'incidents:detail' i.pk %}" class="font-medium text-indigo-600 hover:underline">{{ i.reference }} · {{ i.title }}</a><span class="text-slate-500">{{ i.get_status_display }}</span></li>
-      {% empty %}<li class="py-2 text-slate-400">No unresolved incidents.</li>{% endfor %}
+      {% for i in incidents.latest %}
+      <li class="flex items-center justify-between py-3 hover:bg-slate-50/50 px-2 rounded-lg transition-colors">
+        <a href="{% url 'incidents:detail' i.pk %}" class="flex items-center gap-2.5 font-medium text-indigo-600 hover:text-indigo-700">
+          <span class="font-mono text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{{ i.reference }}</span>
+          <span class="truncate max-w-md">{{ i.title }}</span>
+        </a>
+        <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">{{ i.get_status_display }}</span>
+      </li>
+      {% empty %}
+      <li class="py-6 text-center text-xs text-slate-400">All clear! No unresolved incidents open.</li>
+      {% endfor %}
     </ul>
   </div>
+
 </div>
-<script src="{% static 'dashboard/js/live_refresh.js' %}"></script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/live_refresh.js' %}"></script>
 {% endblock %}
