@@ -10,8 +10,8 @@
   </div>
 
   <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><p class="font-semibold text-slate-800">Research check-in</p><p class="mt-2 text-sm leading-6 text-slate-500">Log a research session <span class="text-slate-400">(Phase 4)</span></p></div>
-    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><p class="font-semibold text-slate-800">Borrowed instruments</p><p class="mt-2 text-sm leading-6 text-slate-500">View research equipment <span class="text-slate-400">(Phase 5)</span></p></div>
+    <a href="{% url 'access_logging:check_in' %}" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-indigo-200 hover:shadow-md sm:p-6"><p class="font-semibold text-slate-800">Research check-in</p><p class="mt-2 text-sm leading-6 text-slate-500">Log a research session.</p></a>
+    <a href="{% url 'equipment:mine' %}" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-indigo-200 hover:shadow-md sm:p-6"><p class="font-semibold text-slate-800">Borrowed instruments</p><p class="mt-2 text-sm leading-6 text-slate-500">View research equipment.</p></a>
     <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><p class="font-semibold text-slate-800">Incident reports</p><p class="mt-2 text-sm leading-6 text-slate-500">Review your submissions <span class="text-slate-400">(Phase 6)</span></p></div>
   </div>
 </div>
