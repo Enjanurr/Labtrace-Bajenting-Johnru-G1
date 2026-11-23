@@ -1,6 +1,10 @@
 from django.contrib import messages
 from django.contrib.auth.views import LoginView, LogoutView
 from django.shortcuts import redirect, render
+from django.urls import reverse
+
+from access_logging.models import LabVisit
+from equipment.models import EquipmentLog
 
 from .forms import LoginForm, RegistrationForm
 
@@ -36,5 +40,38 @@ class LabTraceLoginView(LoginView):
 
 
 class LabTraceLogoutView(LogoutView):
-    # Redirects to LOGOUT_REDIRECT_URL (login page). Template uses POST + CSRF.
-    pass
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            active_visits = LabVisit.objects.filter(
+                user=request.user,
+                status=LabVisit.Status.ACTIVE,
+            )
+            open_logs = EquipmentLog.objects.filter(
+                visit__user=request.user,
+                returned_at__isnull=True,
+            ).select_related("asset", "visit")
+
+            if active_visits.exists() or open_logs.exists():
+                parts = []
+                if active_visits.exists():
+                    visit = active_visits.first()
+                    parts.append(
+                        f"active lab visit at {visit.lab_location} "
+                        f"(check out here: {reverse('access_logging:my_visits')})"
+                    )
+                if open_logs.exists():
+                    assets = ", ".join(
+                        f"{log.asset.asset_code} - {log.asset.name}"
+                        for log in open_logs
+                    )
+                    parts.append(
+                        f"unreturned equipment: {assets} "
+                        f"(return them here: {reverse('equipment:mine')})"
+                    )
+                messages.warning(
+                    request,
+                    "Logout blocked. Please resolve the following first: " +
+                    "; ".join(parts),
+                )
+                return redirect("dashboard:home")
+        return super().dispatch(request, *args, **kwargs)

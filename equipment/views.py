@@ -5,6 +5,8 @@ from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.urls import reverse
+from urllib.parse import urlencode
 
 from access_logging.models import LabVisit
 from authentication.models import User
@@ -80,6 +82,27 @@ def borrow_view(request):
                     )
                     if asset.availability_status != Asset.Availability.AVAILABLE:
                         form.add_error("asset", "This item was just taken by someone else.")
+                    elif form.cleaned_data["pre_condition"] in (
+                        Condition.DAMAGED,
+                        Condition.MALFUNCTIONING,
+                        Condition.MISSING,
+                    ):
+                        asset.availability_status = (
+                            Asset.Availability.MISSING
+                            if form.cleaned_data["pre_condition"] == Condition.MISSING
+                            else Asset.Availability.MAINTENANCE
+                        )
+                        asset.save(update_fields=["availability_status"])
+                        params = urlencode({
+                            "visit": visit.pk,
+                            "asset": asset.pk,
+                            "condition": form.cleaned_data["pre_condition"],
+                        })
+                        messages.warning(
+                            request,
+                            f"{asset.asset_code} is defective and cannot be borrowed.",
+                        )
+                        return redirect(f"{reverse('incidents:new')}?{params}")
                     else:
                         log = form.save(commit=False)
                         log.visit = visit
@@ -129,6 +152,13 @@ def return_view(request, pk):
                     f"and marked {asset.get_availability_status_display()}. "
                     "Consider filing an incident report.",
                 )
+                params = urlencode({
+                    "visit": log.visit_id,
+                    "log": log.pk,
+                    "asset": asset.pk,
+                    "condition": entry.post_condition,
+                })
+                return redirect(f"{reverse('incidents:new')}?{params}")
             return redirect("equipment:mine")
     else:
         form = ReturnForm(instance=log)
@@ -139,7 +169,7 @@ def return_view(request, pk):
 @login_required
 def my_equipment_view(request):
     mine = EquipmentLog.objects.filter(visit__user=request.user).select_related(
-        "asset", "visit"
+        "asset", "visit", "visit__room"
     )
     current = mine.filter(returned_at__isnull=True)
     history = mine.filter(returned_at__isnull=False)

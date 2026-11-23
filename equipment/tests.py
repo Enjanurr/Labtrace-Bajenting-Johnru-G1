@@ -4,8 +4,14 @@ from django.urls import reverse
 
 from access_logging.models import LabVisit
 
-from .forms import AssetForm, RoomForm
-from .models import Asset, Condition, EquipmentLog, Room
+from .forms import AssetForm, BorrowForm, ReturnForm, RoomForm
+from .models import (
+    Asset,
+    CONDITION_CHOICES,
+    Condition,
+    EquipmentLog,
+    Room,
+)
 
 User = get_user_model()
 
@@ -90,6 +96,54 @@ class EquipmentBehaviorTests(TestCase):
 
         self.assertRedirects(response, reverse("access_logging:check_in"))
         self.assertFalse(EquipmentLog.objects.exists())
+
+    def test_defective_asset_is_blocked_and_return_defect_updates_status(self):
+        for status in (
+            Asset.Availability.MAINTENANCE,
+            Asset.Availability.MISSING,
+        ):
+            self.asset.availability_status = status
+            self.asset.save(update_fields=["availability_status"])
+            response = self.client.post(
+                reverse("equipment:borrow"),
+                {"asset": self.asset.pk, "pre_condition": Condition.GOOD},
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertFalse(EquipmentLog.objects.filter(asset=self.asset).exists())
+
+        self.asset.availability_status = Asset.Availability.BORROWED
+        self.asset.save(update_fields=["availability_status"])
+        log = EquipmentLog.objects.create(
+            visit=self.visit,
+            asset=self.asset,
+            pre_condition=Condition.GOOD,
+        )
+        response = self.client.post(
+            reverse("equipment:return", kwargs={"pk": log.pk}),
+            {"post_condition": Condition.DAMAGED},
+        )
+        self.asset.refresh_from_db()
+        self.assertEqual(
+            self.asset.availability_status,
+            Asset.Availability.MAINTENANCE,
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("incidents:new"), response["Location"])
+
+    def test_borrow_and_return_forms_use_the_shared_condition_choices(self):
+        borrow_form = BorrowForm()
+        return_form = ReturnForm()
+        expected = [choice[0] for choice in CONDITION_CHOICES]
+        self.assertEqual(
+            [choice[0] for choice in borrow_form.fields["pre_condition"].choices
+             if choice[0]],
+            expected,
+        )
+        self.assertEqual(
+            [choice[0] for choice in return_form.fields["post_condition"].choices
+             if choice[0]],
+            expected,
+        )
 
 
 class RoomAndAssetCodeTests(TestCase):

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load severity_tags %}
 {% block title %}Return Equipment{% endblock %}
 
 {% block content %}
@@ -34,8 +35,7 @@
       </div>
       <div class="flex justify-between py-2">
         <dt class="font-medium text-slate-500">Condition Upon Checkout</dt>
-        <dd><span class="rounded bg-indigo-50 px-2 py-0.5 font-semibold text-indigo-700">{{
-            log.get_pre_condition_display }}</span></dd>
+        <dd>{% severity_badge log.pre_condition log.get_pre_condition_display %}</dd>
       </div>
     </dl>
 

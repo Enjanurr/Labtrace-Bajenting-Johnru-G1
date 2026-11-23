@@ -37,7 +37,47 @@ def incident_list(request):
 
 @login_required
 def incident_create(request):
-    form = IncidentForm(request.POST or None, user=request.user)
+    initial = {}
+    if request.method == "GET":
+        visit_id = request.GET.get("visit")
+        log_id = request.GET.get("log")
+        asset_id = request.GET.get("asset")
+        condition = request.GET.get("condition", "")
+
+        from equipment.models import Asset
+
+        asset = Asset.objects.filter(pk=asset_id).first() if asset_id else None
+        if visit_id:
+            initial["visit"] = visit_id
+        if log_id:
+            initial["equipment_log"] = log_id
+        if condition == "DAMAGED":
+            initial.update({
+                "title": f"Damaged equipment: {asset.asset_code}" if asset else "Damaged equipment",
+                "category": Incident.Category.DAMAGE,
+                "severity": Incident.Severity.HIGH,
+                "description": f"{asset.asset_code} was reported Damaged in room {asset.room.name if asset.room else 'Unassigned'}." if asset else "Equipment was reported Damaged.",
+            })
+        elif condition == "MALFUNCTIONING":
+            initial.update({
+                "title": f"Malfunctioning equipment: {asset.asset_code}" if asset else "Malfunctioning equipment",
+                "category": Incident.Category.MALFUNCTION,
+                "severity": Incident.Severity.MEDIUM,
+                "description": f"{asset.asset_code} was reported Malfunctioning in room {asset.room.name if asset.room else 'Unassigned'}." if asset else "Equipment was reported Malfunctioning.",
+            })
+        elif condition == "MISSING":
+            initial.update({
+                "title": f"Missing equipment: {asset.asset_code}" if asset else "Missing equipment",
+                "category": Incident.Category.LOSS,
+                "severity": Incident.Severity.HIGH,
+                "description": f"{asset.asset_code} was reported Missing in room {asset.room.name if asset.room else 'Unassigned'}." if asset else "Equipment was reported Missing.",
+            })
+
+    form = IncidentForm(
+        request.POST or None,
+        user=request.user,
+        initial=initial if request.method == "GET" else None,
+    )
     if request.method == "POST" and form.is_valid():
         incident = form.save(commit=False)
         incident.reporter = request.user

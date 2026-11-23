@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load severity_tags %}
 {% block title %}Incidents Desk{% endblock %}
 
 {% block content %}
@@ -89,13 +90,7 @@
 
             <!-- Severity -->
             <td class="whitespace-nowrap px-6 py-4 text-xs font-medium">
-              {% if i.severity == "CRITICAL" or i.severity == "HIGH" %}
-              <span class="text-rose-600 font-semibold">{{ i.get_severity_display }}</span>
-              {% elif i.severity == "MEDIUM" %}
-              <span class="text-amber-600 font-semibold">{{ i.get_severity_display }}</span>
-              {% else %}
-              <span class="text-slate-600">{{ i.get_severity_display }}</span>
-              {% endif %}
+              {% severity_badge i.severity i.get_severity_display %}
             </td>
 
             <!-- Status Badge -->

@@ -1,19 +1,20 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.conf import settings
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 
 from authentication.models import User
+from equipment.models import Room
 from users.decorators import is_ajax, role_required
 
 from .forms import CheckInForm
 from .models import LabVisit
+from .room_picker import active_rooms, room_picker_context
 
 STAFF_ROLES = (User.Role.INSTRUCTOR, User.Role.ADMIN)
 
@@ -30,24 +31,33 @@ def check_in_view(request):
         )
         return redirect("access_logging:my_visits")
 
-    if request.method == "POST":
-        form = CheckInForm(request.POST)
-        if form.is_valid():
-            visit = form.save(commit=False)
-            visit.user = request.user
-            try:
-                with transaction.atomic():
-                    visit.save()
-            except IntegrityError:
-                # Double-submit / second tab: the DB constraint caught it.
-                messages.error(request, "You already have an active visit.")
-                return redirect("access_logging:my_visits")
-            messages.success(request, f"Checked in at {visit.lab_location}.")
+    form = CheckInForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        visit = form.save(commit=False)
+        visit.user = request.user
+        try:
+            with transaction.atomic():
+                room = Room.objects.select_for_update().get(
+                    pk=visit.room_id,
+                    is_active=True,
+                )
+                visit.room = room
+                visit.save()
+        except Room.DoesNotExist:
+            form.add_error("room", "This room is no longer active. Select another room.")
+        except IntegrityError:
+            # A second tab can create a visit after the initial active-visit check.
+            messages.error(request, "You already have an active visit.")
             return redirect("access_logging:my_visits")
-    else:
-        form = CheckInForm()
+        else:
+            messages.success(request, f"Checked in at {visit.room.name}.")
+            return redirect("access_logging:my_visits")
 
-    return render(request, "access_logging/check_in.html", {"form": form})
+    return render(
+        request,
+        "access_logging/check_in.html",
+        {"form": form, **room_picker_context(form)},
+    )
 
 
 @require_POST
@@ -87,7 +97,7 @@ def check_out_view(request, pk):
 
 @login_required
 def my_visits_view(request):
-    mine = LabVisit.objects.filter(user=request.user)
+    mine = LabVisit.objects.filter(user=request.user).select_related("room")
     current = mine.filter(status=LabVisit.Status.ACTIVE).first()
     history = mine.filter(status=LabVisit.Status.COMPLETED)
     page_obj = Paginator(history, 10).get_page(request.GET.get("page"))
@@ -101,9 +111,24 @@ def my_visits_view(request):
 @role_required(*STAFF_ROLES)
 def active_visits_view(request):
     location = request.GET.get("location", "")
-    qs = LabVisit.objects.filter(status=LabVisit.Status.ACTIVE).select_related("user")
-    if location in settings.LAB_LOCATIONS:
-        qs = qs.filter(lab_location=location)
+    qs = LabVisit.objects.filter(status=LabVisit.Status.ACTIVE).select_related(
+        "user", "room"
+    )
+    selected_room = None
+    if location.isdigit():
+        selected_room = Room.objects.filter(
+            pk=location,
+            is_active=True,
+        ).first()
+        if selected_room:
+            qs = qs.filter(
+                Q(room=selected_room)
+                | Q(room__isnull=True, lab_location=selected_room.name)
+            )
+        else:
+            location = ""
+    else:
+        location = ""
     visits = list(qs)
 
     # jQuery polling gets JSON: row HTML + count.
@@ -121,7 +146,7 @@ def active_visits_view(request):
 
     occupancy = (
         LabVisit.objects.filter(status=LabVisit.Status.ACTIVE)
-        .values("lab_location")
+        .values("lab_location", "room__building")
         .annotate(n=Count("id"))
         .order_by("lab_location")
     )
@@ -131,7 +156,7 @@ def active_visits_view(request):
         {
             "visits": visits,
             "occupancy": occupancy,
-            "locations": settings.LAB_LOCATIONS,
-            "location": location,
+            "locations": active_rooms(),
+            "location": str(selected_room.pk) if selected_room else "",
         },
     )

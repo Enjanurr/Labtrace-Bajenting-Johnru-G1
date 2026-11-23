@@ -3,7 +3,14 @@ from django.db import transaction
 
 from authentication.forms import INPUT_CLASSES
 
-from .models import Asset, Condition, EquipmentLog, Room, derive_room_prefix
+from .models import (
+    Asset,
+    CONDITION_CHOICES,
+    Condition,
+    EquipmentLog,
+    Room,
+    derive_room_prefix,
+)
 
 
 class BorrowForm(forms.ModelForm):
@@ -17,11 +24,9 @@ class BorrowForm(forms.ModelForm):
             availability_status=Asset.Availability.AVAILABLE
         ).order_by("asset_code")
         self.fields["asset"].empty_label = "Select equipment..."
-        self.fields["pre_condition"].choices = [("", "Select condition...")] + [
-            choice
-            for choice in Condition.choices
-            if choice[0] != Condition.MISSING
-        ]
+        self.fields["pre_condition"].choices = [
+            ("", "Select condition...")
+        ] + list(CONDITION_CHOICES)
         self.fields["pre_condition"].label = "Condition before borrowing"
 
         for field in self.fields.values():
@@ -38,7 +43,7 @@ class ReturnForm(forms.ModelForm):
         self.fields["post_condition"].required = True
         self.fields["post_condition"].choices = [
             ("", "Select condition...")
-        ] + list(Condition.choices)
+        ] + list(CONDITION_CHOICES)
         self.fields["post_condition"].label = "Condition on return"
 
         for field in self.fields.values():

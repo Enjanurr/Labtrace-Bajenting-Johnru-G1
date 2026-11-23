@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load severity_tags %}
 {% block title %}Incident {{ incident.reference }}{% endblock %}
 
 {% block content %}
@@ -35,13 +36,7 @@
       <div class="flex justify-between py-1">
         <dt class="font-medium text-slate-500">Severity Level</dt>
         <dd>
-          {% if incident.severity == "CRITICAL" or incident.severity == "HIGH" %}
-          <span class="font-bold text-rose-600">{{ incident.get_severity_display }}</span>
-          {% elif incident.severity == "MEDIUM" %}
-          <span class="font-semibold text-amber-600">{{ incident.get_severity_display }}</span>
-          {% else %}
-          <span class="font-medium text-slate-700">{{ incident.get_severity_display }}</span>
-          {% endif %}
+          {% severity_badge incident.severity incident.get_severity_display %}
         </dd>
       </div>
       <div class="flex justify-between py-1">

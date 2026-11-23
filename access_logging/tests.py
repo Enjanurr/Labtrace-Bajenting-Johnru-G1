@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from equipment.models import Room
+
 from .models import LabVisit
 
 User = get_user_model()
@@ -15,6 +17,10 @@ class VisitBehaviorTests(TestCase):
             password="SecurePass123!",
         )
         self.client.force_login(self.user)
+        self.room = Room.objects.create(
+            name="Computer Lab 1",
+            building="NGE",
+        )
 
     def test_check_in_and_visit_history_templates_resolve(self):
         response = self.client.get(reverse("access_logging:check_in"))
@@ -28,7 +34,7 @@ class VisitBehaviorTests(TestCase):
     def test_check_in_creates_a_single_active_visit(self):
         response = self.client.post(
             reverse("access_logging:check_in"),
-            {"lab_location": "Computer Lab 1", "purpose": LabVisit.Purpose.CLASS},
+            {"room": self.room.pk, "purpose": LabVisit.Purpose.CLASS},
         )
 
         self.assertRedirects(response, reverse("access_logging:my_visits"))
@@ -41,7 +47,7 @@ class VisitBehaviorTests(TestCase):
 
         response = self.client.post(
             reverse("access_logging:check_in"),
-            {"lab_location": "Computer Lab 2", "purpose": LabVisit.Purpose.RESEARCH},
+            {"room": self.room.pk, "purpose": LabVisit.Purpose.RESEARCH},
         )
         self.assertRedirects(response, reverse("access_logging:my_visits"))
         self.assertEqual(

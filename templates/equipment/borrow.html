@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load severity_tags %}
 {% block title %}Borrow Equipment{% endblock %}
 
 {% block content %}
@@ -19,7 +20,7 @@
     <div class="mt-4 flex items-center gap-2.5 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 text-xs text-slate-600">
       <svg class="h-4 w-4 text-indigo-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <div>
-        Session Active: Linked to your visit at <strong class="font-semibold text-slate-900">{{ visit.lab_location }}</strong> ({{ visit.get_purpose_display }}).
+        Session Active: Linked to your visit at <strong class="font-semibold text-slate-900">{{ visit.room.name|default:visit.lab_location }}</strong>{% if visit.room.building %} ({{ visit.room.building }}){% endif %} ({{ visit.get_purpose_display }}).
       </div>
     </div>
 

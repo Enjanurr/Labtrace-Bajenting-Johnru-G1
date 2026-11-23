@@ -56,6 +56,14 @@ class Room(models.Model):
         super().save(*args, **kwargs)
 
 
+CONDITION_CHOICES = (
+    ("GOOD", "Good"),
+    ("DAMAGED", "Damaged"),
+    ("MALFUNCTIONING", "Malfunctioning"),
+    ("MISSING", "Missing"),
+)
+
+
 class Condition(models.TextChoices):
     GOOD = "GOOD", "Good"
     DAMAGED = "DAMAGED", "Damaged"
