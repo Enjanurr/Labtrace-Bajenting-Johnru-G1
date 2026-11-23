@@ -1,11 +1,6 @@
 from django.contrib import admin
 
-from .models import Incident, IncidentAttachment, IncidentStatusHistory
-
-
-class AttachmentInline(admin.TabularInline):
-    model = IncidentAttachment
-    extra = 0
+from .models import Incident, IncidentStatusHistory
 
 
 class HistoryInline(admin.TabularInline):
@@ -23,4 +18,4 @@ class IncidentAdmin(admin.ModelAdmin):
     list_display = ("id", "title", "reporter", "category", "severity", "status", "created_at")
     list_filter = ("status", "severity", "category")
     search_fields = ("title", "reporter__email")
-    inlines = [AttachmentInline, HistoryInline]
+    inlines = [HistoryInline]

@@ -22,7 +22,7 @@
       Accurately describe the event. If related to an active visit or loaned equipment piece, link them below.
     </p>
 
-    <form method="post" enctype="multipart/form-data" class="mt-6 space-y-4" novalidate>
+    <form method="post" class="mt-6 space-y-4" novalidate>
       {% csrf_token %}
 
       {% if form.non_field_errors %}

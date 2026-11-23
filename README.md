@@ -17,7 +17,7 @@ shared project templates and locally stored static files.
 - **Lab visits (`access_logging`)** — check-in, visit history, check-out, and a
   staff active-visits/occupancy view with an AJAX refresh and checkout action.
 - **Equipment (`equipment`)** — inventory, borrowing and returning, condition
-  recording, optional/required proof photos, and staff asset editing.
+  recording, and staff asset editing.
 - **Dashboards (`dashboard`)** — role-specific landing pages; the admin page
   currently displays user counts.
 - **Incidents (`incidents`)** — incident reporting, status transitions, history,
@@ -197,13 +197,12 @@ lab/
 - The project-level `templates/` directory is configured in Django settings;
   apps may also provide templates under their own `templates/` directories.
 - Password-reset emails use Django's file-based email backend and are written
-  to `sent_emails/`. Uploaded equipment condition images are configured to use
-  local `MEDIA_ROOT` (`media/`), which is not currently present in the tree.
+  to `sent_emails/`. The application does not use uploaded media storage.
 
 ## Requirements and local setup
 
 Requirements are listed in `requirements.txt`: Django 5.2, `psycopg` 3,
-`python-dotenv`, and Pillow. A PostgreSQL server that accepts SSL connections
+`python-dotenv`. A PostgreSQL server that accepts SSL connections
 is required by the current settings; the checked-in/local `db.sqlite3` is
 **not** selected as the application database.
 
@@ -267,4 +266,3 @@ before relying on a change.
   application.
 - Equipment templates are in the shared template directory; the inventory
   view and template both use `equipment/inventory.html`.
-- `requirements.txt` declares Pillow for the equipment `ImageField` models.

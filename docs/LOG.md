@@ -36,7 +36,7 @@ the complete file tree, and implementation caveats, see [README.md](README.md).
   users, visits, assets, loans, and incidents. Its current tests fail because
   the command passes `institutional_id`, which is not a field on the current
   user model; it needs correction before treating the seed command as usable.
-- Updated local setup dependencies to include Pillow and added ignore rules
+- Removed photo/upload dependencies and media storage configuration
   for uploaded media and generated file-based email output. The inventory
   template is now named `templates/equipment/inventory.html`, and the
   password-change route is present.
@@ -64,8 +64,6 @@ the complete file tree, and implementation caveats, see [README.md](README.md).
 - `docs/WBS_STATUS.md` predates these additions and should be refreshed: an
   audit API and performance tests now exist, although the performance
   assertions fail; a demo-data command also exists but currently fails.
-- Authorized download views now exist for incident attachments and equipment
-  condition images and return private/no-store responses. However,
   `templates/incidents/incident_detail.html` and `templates/equipment/return.html`
   still contain direct `file.url` links; switch these to the authorized routes
   so the UI does not bypass the new permission checks when media is served.
@@ -97,14 +95,14 @@ the complete file tree, and implementation caveats, see [README.md](README.md).
 
 ### Current implementation status
 
-| Component | Current state |
-| --- | --- |
-| `authentication` | Custom `AbstractUser` with `STUDENT`, `INSTRUCTOR`, `RESEARCHER`, and `ADMIN` roles; `@cit.edu` validation; registration, login by username/email, logout. |
-| `users` | Self-service profile view/edit, admin user search/role/active controls, role-based access helpers, and file-based password-reset flow. Deactivation sets Django's `is_active=False`, preserving related records. |
-| `access_logging` | Visit check-in, personal history, checkout, staff active-visit listing, occupancy counts, and AJAX refresh/checkout. A database constraint permits at most one active visit per user. |
-| `equipment` | Asset inventory, borrowing/returning, condition records and photo fields, staff asset create/edit. Loans link to visits; checkout is blocked while items remain unreturned. |
-| `dashboard` | Role-specific pages, staff-only central dashboard with live equipment/condition metrics, searchable cross-module audit UI/API, audit indexes, and demo-data command. The latest dashboard test run has 2 failures and 6 errors; see the verification notes above. |
-| `incidents` | Incident reporting, status lifecycle, history, and staff audit views are routed and tested. |
+| Component        | Current state                                                                                                                                                                                                                                                     |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `authentication` | Custom `AbstractUser` with `STUDENT`, `INSTRUCTOR`, `RESEARCHER`, and `ADMIN` roles; `@cit.edu` validation; registration, login by username/email, logout.                                                                                                        |
+| `users`          | Self-service profile view/edit, admin user search/role/active controls, role-based access helpers, and file-based password-reset flow. Deactivation sets Django's `is_active=False`, preserving related records.                                                  |
+| `access_logging` | Visit check-in, personal history, checkout, staff active-visit listing, occupancy counts, and AJAX refresh/checkout. A database constraint permits at most one active visit per user.                                                                             |
+| `equipment`      | Asset inventory, borrowing/returning, condition records, staff asset create/edit. Loans link to visits; checkout is blocked while items remain unreturned.                                                                                                        |
+| `dashboard`      | Role-specific pages, staff-only central dashboard with live equipment/condition metrics, searchable cross-module audit UI/API, audit indexes, and demo-data command. The latest dashboard test run has 2 failures and 6 errors; see the verification notes above. |
+| `incidents`      | Incident reporting, status lifecycle, history, and staff audit views are routed and tested.                                                                                                                                                                       |
 
 ### Important current limitations
 
@@ -116,7 +114,6 @@ the complete file tree, and implementation caveats, see [README.md](README.md).
 - Equipment inventory now uses the matching `equipment/inventory.html`
   template, and a password-change route is configured to render
   `users/password_change.html`.
-- `Pillow` is declared in `requirements.txt` for equipment image fields.
 - Settings currently enable `DEBUG` and contain a development placeholder
   `SECRET_KEY`. Do not deploy these settings as-is.
 - Other app tests have been expanded, but only the dashboard test run was

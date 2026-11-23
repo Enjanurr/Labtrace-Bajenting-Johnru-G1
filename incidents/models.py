@@ -63,18 +63,6 @@ class Incident(models.Model):
     def __str__(self):
         return f"{self.reference}: {self.title}"
 
-
-class IncidentAttachment(models.Model):
-    incident = models.ForeignKey(Incident, on_delete=models.CASCADE, related_name="attachments")
-    file = models.FileField(upload_to="incident_evidence/%Y/%m/")
-    original_name = models.CharField(max_length=255)
-    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.original_name
-
-
 class IncidentStatusHistory(models.Model):
     """Append-only timeline. Never edited or deleted from the UI."""
     incident = models.ForeignKey(Incident, on_delete=models.CASCADE, related_name="history")

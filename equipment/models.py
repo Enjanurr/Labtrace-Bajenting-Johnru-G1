@@ -46,12 +46,6 @@ class EquipmentLog(models.Model):
     post_condition = models.CharField(
         max_length=20, choices=Condition.choices, null=True, blank=True
     )
-    pre_condition_img = models.ImageField(
-        upload_to="conditions/pre/", null=True, blank=True
-    )
-    post_condition_img = models.ImageField(
-        upload_to="conditions/post/", null=True, blank=True
-    )
 
     class Meta:
         ordering = ["-borrowed_at"]

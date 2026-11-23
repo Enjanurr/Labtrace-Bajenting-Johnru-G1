@@ -71,7 +71,7 @@ def borrow_view(request):
         return redirect("access_logging:check_in")
 
     if request.method == "POST":
-        form = BorrowForm(request.POST, request.FILES)
+        form = BorrowForm(request.POST)
         if form.is_valid():
             try:
                 with transaction.atomic():
@@ -110,7 +110,7 @@ def return_view(request, pk):
         return redirect("equipment:mine")
 
     if request.method == "POST":
-        form = ReturnForm(request.POST, request.FILES, instance=log)
+        form = ReturnForm(request.POST, instance=log)
         if form.is_valid():
             with transaction.atomic():
                 entry = form.save(commit=False)

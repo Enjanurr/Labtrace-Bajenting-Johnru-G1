@@ -1,5 +1,4 @@
 from django.urls import path
-from . import downloads
 from . import views
 
 app_name = "equipment"
@@ -12,5 +11,4 @@ urlpatterns = [
     # Staff only (middleware rule: /equipment/manage/)
     path("manage/new/", views.asset_form_view, name="asset_new"),
     path("manage/<int:pk>/edit/", views.asset_form_view, name="asset_edit"),
-    path("loans/<int:pk>/image/<str:kind>/", downloads.condition_image, name="condition_image"),
 ]

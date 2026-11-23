@@ -1,7 +1,4 @@
-import os
-
 from django import forms
-from django.core.exceptions import ValidationError
 
 from access_logging.models import LabVisit
 from equipment.models import EquipmentLog
@@ -13,30 +10,12 @@ INPUT = (
     "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm "
     "focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
 )
-FILE_INPUT = "block w-full text-sm text-slate-600"
-ALLOWED_EXT = {".jpg", ".jpeg", ".png", ".pdf"}
-MAX_BYTES = 5 * 1024 * 1024
-
-
-def validate_evidence(f):
-    if f is None:
-        return f
-    if os.path.splitext(f.name)[1].lower() not in ALLOWED_EXT:
-        raise ValidationError("Only JPG, PNG, or PDF files are allowed.")
-    if f.size > MAX_BYTES:
-        raise ValidationError("File is too large (max 5 MB).")
-    return f
-
-
 def style(form):
     for field in form.fields.values():
-        cls = FILE_INPUT if isinstance(field.widget, forms.ClearableFileInput) else INPUT
-        field.widget.attrs["class"] = cls
+        field.widget.attrs["class"] = INPUT
 
 
 class IncidentForm(forms.ModelForm):
-    attachment = forms.FileField(required=False, label="Evidence photo / file (optional)")
-
     class Meta:
         model = Incident
         fields = ("title", "category", "severity", "visit", "equipment_log", "description")
@@ -55,20 +34,6 @@ class IncidentForm(forms.ModelForm):
         self.fields["visit"].empty_label = "— Not linked to a visit —"
         self.fields["equipment_log"].empty_label = "— No equipment involved —"
         style(self)
-
-    def clean_attachment(self):
-        return validate_evidence(self.cleaned_data.get("attachment"))
-
-
-class AttachmentForm(forms.Form):
-    file = forms.FileField(label="Add evidence")
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        style(self)
-
-    def clean_file(self):
-        return validate_evidence(self.cleaned_data.get("file"))
 
 
 class StatusUpdateForm(forms.Form):

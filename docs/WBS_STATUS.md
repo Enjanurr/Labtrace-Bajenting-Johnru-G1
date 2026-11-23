@@ -36,9 +36,9 @@ implementation, not production readiness.
 | 1.3.2 | Digital Check-Out | DONE | `access_logging/urls.py` (`check_out`); `access_logging/views.py` (`check_out_view`); `access_logging/models.py` (`LabVisit.check_out`); `templates/access_logging/my_visits.html` | Checkout updates duration and prevents checkout while equipment is still borrowed. |
 | 1.3.3 | Centralized Laboratory Dashboard | DONE | `dashboard/central.py` (`central_dashboard`, `central_data`); `dashboard/selectors.py` (`live_snapshot`, `equipment_metrics`, `occupancy`, `incident_summary`); `templates/dashboard/central.html`; `static/js/live_refresh.js` | Staff dashboard aggregates active visits, occupancy, equipment availability, current borrowers, usage/condition metrics, and unresolved incidents. JSON refresh updates the displayed metrics. One dashboard test errors because its fixture creates an asset with a blank unique `asset_code`; feature code is routed and implemented. |
 | 1.4.1 | Borrow Equipment | DONE | `equipment/urls.py` (`borrow`); `equipment/views.py` (`borrow_view`); `equipment/forms.py` (`BorrowForm`); `equipment/models.py` (`EquipmentLog`) | Borrow flow is implemented and linked to the active visit. |
-| 1.4.2 | Pre/Post Condition Check | PARTIAL | `equipment/models.py` (`Condition`, image fields); `equipment/forms.py` (`BorrowForm`, `ReturnForm`); `equipment/views.py` (`return_view`); `templates/equipment/borrow.html`; `templates/equipment/return.html` | Condition and evidence collection are present, but file validation is shallow and there are no real equipment tests. |
+| 1.4.2 | Pre/Post Condition Check | PARTIAL | `equipment/models.py` (`Condition`); `equipment/forms.py` (`BorrowForm`, `ReturnForm`); `equipment/views.py` (`return_view`); `templates/equipment/borrow.html`; `templates/equipment/return.html` | Condition recording is present; no photo/evidence upload workflow remains. |
 | 1.4.3 | Return Equipment | DONE | `equipment/urls.py` (`return`); `equipment/views.py` (`return_view`); `equipment/models.py` (`EquipmentLog`); `templates/equipment/return.html` | Return handling updates asset availability and logs the post-condition. |
-| 1.5.1 | Report Incident | DONE | `incidents/urls.py` (`new`, `list`, `detail`, `status`); `incidents/views.py` (`incident_create`, `incident_list`, `incident_detail`); `incidents/forms.py` (`IncidentForm`); `incidents/models.py` (`Incident`, `IncidentAttachment`) | Reporting is implemented, routed, and backed by real tests. |
+| 1.5.1 | Report Incident | DONE | `incidents/urls.py` (`new`, `list`, `detail`, `status`); `incidents/views.py` (`incident_create`, `incident_list`, `incident_detail`); `incidents/forms.py` (`IncidentForm`); `incidents/models.py` (`Incident`) | Reporting is implemented, routed, and backed by real tests without file attachments. |
 | 1.5.2 | Incident Status Engine | DONE | `incidents/services.py` (`TRANSITIONS`, `allowed_next_statuses`, `change_status`); `incidents/views.py` (`incident_status`); `incidents/tests.py` | Status transitions, admin enforcement, and lifecycle tests are implemented. |
 | 1.5.3 | Searchable Audit Trail | PARTIAL | `dashboard/central.py` (`audit_trail`, `audit_api`); `dashboard/audit.py` (`parse_filters`, `build_events`, `serialize_event`); `templates/dashboard/audit.html`; `dashboard/tests_performance.py` | Filtered UI and JSON API cover access, equipment, and incident-history events with pagination. Remains partial because query-count/performance assertions fail and event collection is capped at 500 rows per source before pagination. Two filter tests also error due to a test-helper argument collision. |
 
@@ -54,7 +54,6 @@ implementation, not production readiness.
 - `.env` is ignored by Git in `.gitignore`.
 
 ### Requirements — PASS
-- `requirements.txt` declares Pillow for the `ImageField` fields in `equipment/models.py`.
 
 ### Template/route integrity — PASS
 - Login, profile, access-logging, and equipment views resolve their templates from the shared `templates/` directory, including `equipment/inventory.html`.
@@ -109,7 +108,6 @@ command tests failing on unsupported `institutional_id`.
 
 ### High
 - **Insecure deployment settings** — `labtrace/settings.py` still uses a hard-coded development secret and `DEBUG = True`.
-- **Sensitive evidence access** — templates still expose direct media URLs for incident attachments and equipment condition images, bypassing the authorization-aware download views.
 
 ### Medium
 - **Broken seed command** — `dashboard/management/commands/seed_demo_data.py` uses a nonexistent `institutional_id` user field, so demo setup fails.

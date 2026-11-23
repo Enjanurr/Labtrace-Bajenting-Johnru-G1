@@ -14,7 +14,7 @@ updated with the README on 2026-11-14.
   helpers, and password reset.
 - `access_logging/` - lab visit model, check-in/check-out, visit history, and
   active occupancy views.
-- `equipment/` - assets, visit-linked equipment loans, and condition/photo
+- `equipment/` - assets, visit-linked equipment loans, and condition records
   recording.
 - `incidents/` - current scaffold only; no incident URLs or workflow yet.
 - `dashboard/` - role-specific landing pages and limited admin user counts.
