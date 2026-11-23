@@ -12,6 +12,7 @@ from users.decorators import forbidden_response, role_required
 
 from .forms import AssetForm, BorrowForm, ReturnForm
 from .models import Asset, Condition, EquipmentLog
+from .filters import filter_assets, filter_context
 
 STAFF_ROLES = (User.Role.INSTRUCTOR, User.Role.ADMIN)
 
@@ -26,12 +27,10 @@ RETURN_STATUS = {
 
 @login_required
 def inventory_view(request):
-    qs = Asset.objects.all()
+    qs = filter_assets(request, Asset.objects.all())
     q = request.GET.get("q", "").strip()
     status = request.GET.get("status", "")
 
-    if q:
-        qs = qs.filter(Q(asset_code__icontains=q) | Q(name__icontains=q))
     if status in Asset.Availability.values:
         qs = qs.filter(availability_status=status)
 
@@ -57,6 +56,7 @@ def inventory_view(request):
             "status": status,
             "statuses": Asset.Availability.choices,
             "querystring": params.urlencode(),
+            **filter_context(request),
         },
     )
 

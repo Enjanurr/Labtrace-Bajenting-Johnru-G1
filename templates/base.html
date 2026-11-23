@@ -143,6 +143,24 @@
                             Staff &amp; Administration
                         </div>
                         {% endif %}
+                        {% if user.is_superuser or user.role == "ADMIN" %}
+                        <a href="{% url 'equipment:room_list' %}"
+                           class="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition-colors {% if request.resolver_match.view_name == 'equipment:room_list' or request.resolver_match.view_name == 'equipment:room_create' or request.resolver_match.view_name == 'equipment:room_edit' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-700 hover:bg-slate-100 hover:text-indigo-600{% endif %}">
+                            Rooms
+                        </a>
+                        <a href="{% url 'equipment:room_create' %}"
+                           class="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition-colors {% if request.resolver_match.view_name == 'equipment:room_create' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-700 hover:bg-slate-100 hover:text-indigo-600{% endif %}">
+                            <span class="flex items-center gap-2">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M3 21h18"/>
+                                    <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>
+                                    <path d="M9 21v-6h6v6"/>
+                                    <path d="M12 7v4M10 9h4"/>
+                                </svg>
+                                Add Room
+                            </span>
+                        </a>
+                        {% endif %}
 
                         {% if user.is_staff_role %}
                         <a href="{% url 'access_logging:active' %}" 

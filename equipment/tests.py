@@ -4,7 +4,8 @@ from django.urls import reverse
 
 from access_logging.models import LabVisit
 
-from .models import Asset, Condition, EquipmentLog
+from .forms import AssetForm, RoomForm
+from .models import Asset, Condition, EquipmentLog, Room
 
 User = get_user_model()
 
@@ -89,3 +90,83 @@ class EquipmentBehaviorTests(TestCase):
 
         self.assertRedirects(response, reverse("access_logging:check_in"))
         self.assertFalse(EquipmentLog.objects.exists())
+
+
+class RoomAndAssetCodeTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            username="roomadmin",
+            email="roomadmin@cit.edu",
+            password="SecurePass123!",
+            role=User.Role.ADMIN,
+        )
+        self.client.force_login(self.admin)
+
+    def test_room_form_derives_unique_prefix(self):
+        form = RoomForm(
+            data={
+                "name": "Computer Lab 1",
+                "code_prefix": "",
+                "lab_type": Room.LabType.COMPUTER,
+                "building": "Main",
+                "capacity": 30,
+                "is_active": True,
+            }
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        room = form.save()
+        self.assertEqual(room.code_prefix, "CL1")
+
+    def test_asset_form_generates_sequential_codes_and_filters_by_room(self):
+        room = Room.objects.create(
+            name="Computer Lab 1",
+            code_prefix="CL1",
+        )
+        other_room = Room.objects.create(
+            name="Computer Lab 2",
+            code_prefix="CL2",
+        )
+
+        first_form = AssetForm(
+            data={
+                "room": room.pk,
+                "name": "Microscope",
+                "availability_status": Asset.Availability.AVAILABLE,
+            }
+        )
+        self.assertTrue(first_form.is_valid(), first_form.errors)
+        first = first_form.save()
+
+        second_form = AssetForm(
+            data={
+                "room": room.pk,
+                "name": "Projector",
+                "availability_status": Asset.Availability.AVAILABLE,
+            }
+        )
+        self.assertTrue(second_form.is_valid(), second_form.errors)
+        second = second_form.save()
+
+        other = Asset.objects.create(
+            asset_code="CL2-001",
+            name="Router",
+            room=other_room,
+        )
+
+        self.assertEqual(first.asset_code, "CL1-001")
+        self.assertEqual(second.asset_code, "CL1-002")
+        response = self.client.get(
+            reverse("equipment:inventory"),
+            {"room": str(room.pk)},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Microscope")
+        self.assertContains(response, "Projector")
+        self.assertNotContains(response, other.name)
+
+    def test_invalid_room_filter_is_safe(self):
+        response = self.client.get(
+            reverse("equipment:inventory"),
+            {"room": "not-a-room"},
+        )
+        self.assertEqual(response.status_code, 200)
