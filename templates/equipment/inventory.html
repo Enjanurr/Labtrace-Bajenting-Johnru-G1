@@ -80,6 +80,8 @@
     </form>
   </div>
 
+  {% include "equipment/equipment_list.html" %}
+
   <!-- Inventory Table Card -->
   <div class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft-sm">
     <div class="overflow-x-auto">
@@ -133,7 +135,7 @@
             <!-- Action Buttons -->
             <td class="whitespace-nowrap px-6 py-4 text-right">
               <div class="inline-flex items-center gap-2">
-                {% if a.availability_status == 'AVAILABLE' %}
+                {% if a.availability_status == 'AVAILABLE' and can_borrow %}
                 <a href="{% url 'equipment:borrow' %}?asset={{ a.pk }}" 
                    class="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors">
                   Borrow

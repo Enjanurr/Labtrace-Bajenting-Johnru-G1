@@ -12,6 +12,7 @@ from .models import (
     EquipmentLog,
     Room,
 )
+from .room_scope import borrow_scope
 
 User = get_user_model()
 
@@ -24,12 +25,21 @@ class EquipmentBehaviorTests(TestCase):
             password="SecurePass123!",
         )
         self.client.force_login(self.user)
+        self.room = Room.objects.create(
+            name="Computer Lab 1",
+            code_prefix="CL1",
+        )
         self.visit = LabVisit.objects.create(
             user=self.user,
             lab_location="Computer Lab 1",
             purpose=LabVisit.Purpose.CLASS,
+            room=self.room,
         )
-        self.asset = Asset.objects.create(asset_code="EQ-001", name="Microscope")
+        self.asset = Asset.objects.create(
+            asset_code="CL1-001",
+            name="Microscope",
+            room=self.room,
+        )
 
     def test_inventory_and_borrow_templates_resolve(self):
         response = self.client.get(reverse("equipment:inventory"))
@@ -224,3 +234,66 @@ class RoomAndAssetCodeTests(TestCase):
             {"room": "not-a-room"},
         )
         self.assertEqual(response.status_code, 200)
+
+    def test_inventory_is_limited_to_active_visit_room(self):
+        other_room = Room.objects.create(name="Electronics Lab", code_prefix="EL")
+        other_asset = Asset.objects.create(
+            asset_code="EL-001",
+            name="Oscilloscope",
+            room=other_room,
+        )
+
+        response = self.client.get(
+            reverse("equipment:inventory"),
+            {"room": str(other_room.pk)},
+        )
+
+        self.assertContains(response, self.asset.name)
+        self.assertNotContains(response, other_asset.name)
+        self.assertEqual(response.context["scope"].room, self.room)
+
+    def test_borrow_rejects_asset_from_another_room(self):
+        other_room = Room.objects.create(name="Electronics Lab", code_prefix="EL")
+        other_asset = Asset.objects.create(
+            asset_code="EL-001",
+            name="Oscilloscope",
+            room=other_room,
+        )
+
+        response = self.client.post(
+            reverse("equipment:borrow"),
+            {"asset": other_asset.pk, "pre_condition": Condition.GOOD},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(EquipmentLog.objects.filter(asset=other_asset).exists())
+        other_asset.refresh_from_db()
+        self.assertEqual(
+            other_asset.availability_status,
+            Asset.Availability.AVAILABLE,
+        )
+
+    def test_staff_inventory_remains_unrestricted(self):
+        other_room = Room.objects.create(name="Electronics Lab", code_prefix="EL")
+        other_asset = Asset.objects.create(
+            asset_code="EL-001",
+            name="Oscilloscope",
+            room=other_room,
+        )
+        self.user.role = User.Role.INSTRUCTOR
+        self.user.save(update_fields=["role"])
+
+        response = self.client.get(reverse("equipment:inventory"))
+
+        self.assertContains(response, self.asset.name)
+        self.assertContains(response, other_asset.name)
+        self.assertFalse(response.context["scope"].restricted)
+
+    def test_legacy_visit_resolves_room_by_location(self):
+        self.visit.room = None
+        self.visit.save(update_fields=["room"])
+
+        scope = borrow_scope(self.user)
+
+        self.assertEqual(scope.room, self.room)
+        self.assertEqual(scope.visit, self.visit)
