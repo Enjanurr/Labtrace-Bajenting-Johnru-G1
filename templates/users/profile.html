@@ -60,12 +60,12 @@
           <dd class="font-medium text-slate-800">{{ user.get_role_display }}</dd>
         </div>
         <div class="flex justify-between items-center py-1 border-b border-slate-50">
-          <dt class="text-xs font-medium text-slate-500">Institutional ID</dt>
-          <dd class="font-mono text-xs font-semibold text-slate-800">{{ user.institutional_id|default:"—" }}</dd>
+          <dt class="text-xs font-medium text-slate-500">Institution / Department</dt>
+          <dd class="font-medium text-slate-800">{{ user.department|default:"Not provided" }}</dd>
         </div>
         <div class="flex justify-between items-center py-1">
-          <dt class="text-xs font-medium text-slate-500">Department</dt>
-          <dd class="font-medium text-slate-800">{{ user.department|default:"—" }}</dd>
+          <dt class="text-xs font-medium text-slate-500">Institutional ID</dt>
+          <dd class="font-mono text-xs font-semibold text-slate-800">{{ user.institutional_id|default:"—" }}</dd>
         </div>
       </dl>
     </div>

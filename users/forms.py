@@ -11,14 +11,41 @@ User = get_user_model()
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ("first_name", "last_name", "email", "contact_number", "department")
+        fields = (
+            "first_name",
+            "last_name",
+            "email",
+            "contact_number",
+            "department",
+            "institutional_id",
+        )
+        labels = {
+            "department": "Institution / Department",
+            "institutional_id": "Institutional ID",
+        }
+        help_texts = {
+            "department": "Enter your institutional department or affiliation.",
+            "institutional_id": "Enter your student or employee institutional ID.",
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["first_name"].required = True
         self.fields["last_name"].required = True
+        self.fields["department"].widget.attrs["placeholder"] = (
+            "e.g., Engineering or Student Affairs"
+        )
+        self.fields["institutional_id"].widget.attrs["placeholder"] = (
+            "e.g., Student or employee ID"
+        )
         for field in self.fields.values():
             field.widget.attrs["class"] = INPUT_CLASSES
+
+    def clean_department(self):
+        return self.cleaned_data["department"].strip()
+
+    def clean_institutional_id(self):
+        return self.cleaned_data["institutional_id"].strip()
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()

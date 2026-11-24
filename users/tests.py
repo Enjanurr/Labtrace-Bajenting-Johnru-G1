@@ -49,6 +49,25 @@ class ProfileBehaviorTests(TestCase):
         response = self.client.get(reverse("users:profile_edit"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "users/profile_edit.html")
+        self.assertContains(response, "Institution / Department")
+        self.assertContains(response, "institutional department or affiliation")
+        self.assertContains(
+            response,
+            'placeholder="e.g., Engineering or Student Affairs"',
+        )
+        self.assertContains(response, "Institutional ID")
+        self.assertContains(
+            response,
+            "Enter your student or employee institutional ID.",
+        )
+
+    def test_profile_shows_fallback_for_missing_institutional_detail(self):
+        response = self.client.get(reverse("users:profile"))
+
+        self.assertContains(response, "Institution / Department")
+        self.assertContains(response, "Not provided")
+        self.assertContains(response, "Institutional ID")
+        self.assertContains(response, "—")
 
     def test_profile_update_changes_only_the_signed_in_user(self):
         response = self.client.post(
@@ -58,7 +77,8 @@ class ProfileBehaviorTests(TestCase):
                 "last_name": "Member",
                 "email": "newaddress@cit.edu",
                 "contact_number": "555-0100",
-                "department": "Chemistry",
+                "department": "  Chemistry  ",
+                "institutional_id": "  STU-12345  ",
             },
         )
 
@@ -68,6 +88,13 @@ class ProfileBehaviorTests(TestCase):
         self.assertEqual(self.user.email, "newaddress@cit.edu")
         self.assertEqual(self.user.username, "newaddress@cit.edu")
         self.assertEqual(self.user.department, "Chemistry")
+        self.assertEqual(self.user.institutional_id, "STU-12345")
+
+        profile_response = self.client.get(reverse("users:profile"))
+        self.assertContains(profile_response, "Institution / Department")
+        self.assertContains(profile_response, "Chemistry")
+        self.assertContains(profile_response, "Institutional ID")
+        self.assertContains(profile_response, "STU-12345")
 
     def test_password_change_template_and_route_resolve(self):
         response = self.client.get(reverse("users:password_change"))

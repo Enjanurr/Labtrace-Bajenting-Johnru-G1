@@ -31,6 +31,7 @@ class User(AbstractUser):
     )
     contact_number = models.CharField(max_length=32, blank=True)
     department = models.CharField(max_length=100, blank=True)
+    institutional_id = models.CharField(max_length=50, blank=True, default="")
     role = models.CharField(
         max_length=20,
         choices=Role.choices,
