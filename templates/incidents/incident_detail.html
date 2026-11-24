@@ -74,7 +74,7 @@
   </div>
 
   <!-- Status Transition Card -->
-  {% if has_next %}
+  {% if can_update_status %}
   <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm sm:p-8">
     <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-3">Update Incident Status</h2>
     <form method="post" action="{% url 'incidents:status' incident.pk %}" class="mt-4 space-y-4">

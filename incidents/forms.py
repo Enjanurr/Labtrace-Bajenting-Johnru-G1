@@ -45,13 +45,18 @@ class StatusUpdateForm(forms.Form):
 
     def __init__(self, *args, incident, user, **kwargs):
         super().__init__(*args, **kwargs)
+        self.incident = incident
         self.fields["status"].choices = [
-            (s.value, s.label) for s in allowed_next_statuses(incident, user)
+            (status, Incident.Status(status).label)
+            for status in allowed_next_statuses(incident, user)
         ]
+        self.fields["status"].initial = incident.status
         style(self)
 
     def clean(self):
         data = super().clean()
+        if data.get("status") == self.incident.status:
+            self.add_error("status", "Select a different status.")
         if data.get("status") == Incident.Status.RESOLVED and not data.get("note", "").strip():
             self.add_error("note", "Resolution notes are required to resolve an incident.")
         return data

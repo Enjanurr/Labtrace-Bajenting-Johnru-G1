@@ -6,8 +6,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import IncidentForm, StatusUpdateForm
 from .models import Incident
-from .services import (allowed_next_statuses, can_view, change_status,
-                       is_staff, open_incident)
+from .services import can_view, change_status, is_staff, open_incident
 
 
 def _get_visible(request, pk):
@@ -96,7 +95,7 @@ def incident_detail(request, pk):
         "incident": incident,
         "history": incident.history.select_related("changed_by"),
         "status_form": status_form,
-        "has_next": bool(allowed_next_statuses(incident, request.user)),
+        "can_update_status": is_staff(request.user),
     })
 
 
