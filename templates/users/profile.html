@@ -2,25 +2,112 @@
 {% block title %}My Profile{% endblock %}
 
 {% block content %}
-<div class="mx-auto max-w-3xl">
-  <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Account</p>
-        <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900">My Profile</h1>
+<div class="mx-auto max-w-4xl space-y-6">
+
+  <!-- Profile Header Card -->
+  <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm sm:p-8">
+    <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+
+      <!-- Avatar & Core Identity -->
+      <div class="flex items-center gap-4">
+        <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-600 text-2xl font-bold text-white shadow-soft-sm shadow-indigo-500/25">
+          {{ user.first_name|first|default:user.username|first|upper }}
+        </div>
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">{{ user.get_full_name|default:user.username }}</h1>
+            <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-600/10">
+              {{ user.get_role_display }}
+            </span>
+            {% if user.is_active %}
+            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/10">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Active
+            </span>
+            {% endif %}
+          </div>
+          <p class="mt-1 text-sm text-slate-500">{{ user.email }}</p>
+        </div>
       </div>
-      <a href="{% url 'users:profile_edit' %}" class="inline-flex justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:text-purple-200 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Edit profile</a>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <a href="{% url 'users:password_change' %}"
+           class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-soft-xs hover:bg-slate-50 hover:border-slate-300 transition-colors">
+          <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Change password
+        </a>
+        <a href="{% url 'users:profile_edit' %}"
+           class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-soft-xs shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          Edit profile
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Information Grid -->
+  <div class="grid gap-6 md:grid-cols-2">
+    <!-- Academic & Role Details -->
+    <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm">
+      <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-3">Institutional Details</h2>
+      <dl class="mt-4 space-y-4 text-sm">
+        <div class="flex justify-between items-center py-1 border-b border-slate-50">
+          <dt class="text-xs font-medium text-slate-500">Username</dt>
+          <dd class="font-mono text-xs font-semibold text-slate-800">{{ user.username }}</dd>
+        </div>
+        <div class="flex justify-between items-center py-1 border-b border-slate-50">
+          <dt class="text-xs font-medium text-slate-500">Role</dt>
+          <dd class="font-medium text-slate-800">{{ user.get_role_display }}</dd>
+        </div>
+        <div class="flex justify-between items-center py-1 border-b border-slate-50">
+          <dt class="text-xs font-medium text-slate-500">Institution / Department</dt>
+          <dd class="font-medium text-slate-800">{{ user.department|default:"Not provided" }}</dd>
+        </div>
+        <div class="flex justify-between items-center py-1">
+          <dt class="text-xs font-medium text-slate-500">Institutional ID</dt>
+          <dd class="font-mono text-xs font-semibold text-slate-800">{{ user.institutional_id|default:"—" }}</dd>
+        </div>
+      </dl>
     </div>
 
-    <dl class="mt-6 divide-y divide-slate-100 text-sm">
-      <div class="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"><dt class="text-slate-500">Full name</dt><dd class="break-words font-medium text-slate-900 sm:text-right">{{ user.get_full_name|default:"—" }}</dd></div>
-      <div class="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"><dt class="text-slate-500">Email</dt><dd class="break-all font-medium text-slate-900 sm:text-right">{{ user.email }}</dd></div>
-      <div class="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"><dt class="text-slate-500">Student / Employee ID</dt><dd class="font-medium text-slate-900 sm:text-right">{{ user.institutional_id|default:"—" }}</dd></div>
-      <div class="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"><dt class="text-slate-500">Role</dt><dd class="font-medium text-slate-900 sm:text-right">{{ user.get_role_display }}</dd></div>
-      <div class="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"><dt class="text-slate-500">Department</dt><dd class="font-medium text-slate-900 sm:text-right">{{ user.department|default:"—" }}</dd></div>
-      <div class="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"><dt class="text-slate-500">Contact number</dt><dd class="font-medium text-slate-900 sm:text-right">{{ user.contact_number|default:"—" }}</dd></div>
-      <div class="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"><dt class="text-slate-500">Member since</dt><dd class="font-medium text-slate-900 sm:text-right">{{ user.date_joined|date:"M d, Y" }}</dd></div>
-    </dl>
+    <!-- Contact & Activity Details -->
+    <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm">
+      <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-3">Account &amp; Contact</h2>
+      <dl class="mt-4 space-y-4 text-sm">
+        <div class="flex justify-between items-center py-1 border-b border-slate-50">
+          <dt class="text-xs font-medium text-slate-500">Institutional Email</dt>
+          <dd class="font-medium text-slate-800 truncate max-w-[200px]">{{ user.email }}</dd>
+        </div>
+        <div class="flex justify-between items-center py-1 border-b border-slate-50">
+          <dt class="text-xs font-medium text-slate-500">Contact Number</dt>
+          <dd class="font-medium text-slate-800">{{ user.contact_number|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between items-center py-1 border-b border-slate-50">
+          <dt class="text-xs font-medium text-slate-500">Member Since</dt>
+          <dd class="font-medium text-slate-800">{{ user.date_joined|date:"M d, Y" }}</dd>
+        </div>
+        <div class="flex justify-between items-center py-1">
+          <dt class="text-xs font-medium text-slate-500">Last Login</dt>
+          <dd class="font-medium text-slate-800">{{ user.last_login|date:"M d, Y H:i"|default:"Recently" }}</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <!-- Account Security / Danger Zone Footer -->
+  <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h3 class="text-sm font-semibold text-slate-900">Account Lifecycle</h3>
+      <p class="text-xs text-slate-500 mt-0.5">Need to close your session or deactivate your laboratory profile?</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <form method="post" action="{% url 'authentication:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+          Log out
+        </button>
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}
