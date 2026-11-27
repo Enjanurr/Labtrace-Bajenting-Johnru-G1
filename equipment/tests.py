@@ -99,3 +99,74 @@ class RoomBorrowScopeTests(TestCase):
         self.assertFalse(
             EquipmentLog.objects.filter(asset=other_asset).exists()
         )
+
+
+class EquipmentReturningTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(
+            username="returner",
+            email="returner@cit.edu",
+            password="testpass",
+            role=user_model.Role.STUDENT,
+        )
+        self.room = Room.objects.create(
+            name="Computer Lab 1",
+            code_prefix="CL1",
+        )
+        self.visit = LabVisit.objects.create(
+            user=self.user,
+            lab_location=self.room.name,
+            purpose=LabVisit.Purpose.CLASS,
+            room=self.room,
+        )
+        self.asset = Asset.objects.create(
+            asset_code="CL1-001",
+            name="Microscope",
+            room=self.room,
+            availability_status=Asset.Availability.BORROWED,
+        )
+        self.log = EquipmentLog.objects.create(
+            visit=self.visit,
+            asset=self.asset,
+            pre_condition=Condition.GOOD,
+        )
+        self.client.force_login(self.user)
+
+    def test_owner_can_return_asset_with_notes(self):
+        response = self.client.post(
+            reverse("equipment:return", kwargs={"pk": self.log.pk}),
+            {
+                "post_condition": Condition.GOOD,
+                "post_condition_notes": "Returned in good condition.",
+            },
+        )
+
+        self.assertRedirects(response, reverse("equipment:mine"))
+        self.log.refresh_from_db()
+        self.asset.refresh_from_db()
+        self.assertIsNotNone(self.log.returned_at)
+        self.assertEqual(
+            self.log.post_condition_notes,
+            "Returned in good condition.",
+        )
+        self.assertEqual(
+            self.asset.availability_status,
+            Asset.Availability.AVAILABLE,
+        )
+
+    def test_damaged_return_moves_asset_to_maintenance(self):
+        response = self.client.post(
+            reverse("equipment:return", kwargs={"pk": self.log.pk}),
+            {
+                "post_condition": Condition.DAMAGED,
+                "post_condition_notes": "Cracked casing.",
+            },
+        )
+
+        self.assertRedirects(response, reverse("equipment:mine"))
+        self.asset.refresh_from_db()
+        self.assertEqual(
+            self.asset.availability_status,
+            Asset.Availability.MAINTENANCE,
+        )
