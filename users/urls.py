@@ -12,6 +12,14 @@ urlpatterns = [
     path("manage/<int:pk>/role/", views.change_role_view, name="manage_role"),
     path("manage/<int:pk>/toggle-active/", views.toggle_active_view, name="manage_toggle"),
     path(
+        "password-change/",
+        auth_views.PasswordChangeView.as_view(
+            template_name="users/password_change.html",
+            success_url=reverse_lazy("users:profile"),
+        ),
+        name="password_change",
+    ),
+    path(
         "password-reset/",
         auth_views.PasswordResetView.as_view(
             template_name="users/password_reset_form.html",
