@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('equipment', '0001_initial'),
+        ('equipment', '0002_remove_equipmentlog_post_condition_img_and_more'),
     ]
 
     operations = [

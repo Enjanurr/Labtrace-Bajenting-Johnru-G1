@@ -122,7 +122,7 @@ def return_view(request, pk):
         return redirect("equipment:mine")
 
     if request.method == "POST":
-        form = ReturnForm(request.POST, request.FILES, instance=log)
+        form = ReturnForm(request.POST, instance=log)
         if form.is_valid():
             with transaction.atomic():
                 entry = form.save(commit=False)

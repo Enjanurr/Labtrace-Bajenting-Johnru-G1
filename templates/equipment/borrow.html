@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <form method="post" enctype="multipart/form-data" novalidate class="mt-6 space-y-4">
+    <form method="post" novalidate class="mt-6 space-y-4">
       {% csrf_token %}
 
       {% if form.non_field_errors %}
@@ -41,7 +41,7 @@
 
       {% include "authentication/_field.html" with field=form.asset %}
       {% include "authentication/_field.html" with field=form.pre_condition %}
-      {% include "authentication/_field.html" with field=form.pre_condition_img %}
+      {% include "authentication/_field.html" with field=form.pre_condition_notes %}
 
       <div class="flex flex-col-reverse sm:flex-row gap-3 pt-3">
         <a href="{% url 'equipment:inventory' %}" 
