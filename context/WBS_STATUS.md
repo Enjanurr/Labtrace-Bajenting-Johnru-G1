@@ -1,5 +1,11 @@
 # LabTrace WBS Audit Status
 
+> **Historical snapshot:** This audit reflects the workspace as of
+> 2026-11-17. Source and features have since changed; do not treat these
+> statuses, percentages, or test results as current without repeating the
+> audit. Use the current-source references in [README.md](README.md) for
+> onboarding.
+
 ## 1. Summary
 
 - **DONE:** 13 of 15 WBS items (**86.7% fully completed**)
