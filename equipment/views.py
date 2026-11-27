@@ -2,7 +2,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -12,6 +11,8 @@ from users.decorators import forbidden_response, role_required
 
 from .forms import AssetForm, BorrowForm, ReturnForm
 from .models import Asset, Condition, EquipmentLog
+from .filters import filter_assets, filter_context
+from .room_scope import borrow_scope, check_borrow_allowed, scope_assets
 
 STAFF_ROLES = (User.Role.INSTRUCTOR, User.Role.ADMIN)
 
@@ -26,12 +27,9 @@ RETURN_STATUS = {
 
 @login_required
 def inventory_view(request):
-    qs = Asset.objects.all()
-    q = request.GET.get("q", "").strip()
+    scope = borrow_scope(request.user)
+    qs = filter_assets(request, Asset.objects.all(), scope=scope)
     status = request.GET.get("status", "")
-
-    if q:
-        qs = qs.filter(Q(asset_code__icontains=q) | Q(name__icontains=q))
     if status in Asset.Availability.values:
         qs = qs.filter(availability_status=status)
 
@@ -53,25 +51,31 @@ def inventory_view(request):
         "equipment/inventory.html",
         {
             "page_obj": page_obj,
-            "q": q,
+            "q": request.GET.get("q", "").strip(),
             "status": status,
             "statuses": Asset.Availability.choices,
             "querystring": params.urlencode(),
+            "scope": scope,
+            "can_borrow": scope.visit is not None
+            and (not scope.restricted or scope.room is not None),
+            **filter_context(request, scope),
         },
     )
 
 
 @login_required
 def borrow_view(request):
-    visit = LabVisit.objects.filter(
-        user=request.user, status=LabVisit.Status.ACTIVE
-    ).first()
+    scope = borrow_scope(request.user)
+    visit = scope.visit
     if not visit:
         messages.error(request, "Check in to a lab before borrowing equipment.")
         return redirect("access_logging:check_in")
 
     if request.method == "POST":
         form = BorrowForm(request.POST, request.FILES)
+        form.fields["asset"].queryset = scope_assets(
+            scope, form.fields["asset"].queryset
+        )
         if form.is_valid():
             try:
                 with transaction.atomic():
@@ -80,6 +84,11 @@ def borrow_view(request):
                     )
                     if asset.availability_status != Asset.Availability.AVAILABLE:
                         form.add_error("asset", "This item was just taken by someone else.")
+                    elif not check_borrow_allowed(scope, asset)[0]:
+                        form.add_error(
+                            "asset",
+                            check_borrow_allowed(scope, asset)[1],
+                        )
                     else:
                         log = form.save(commit=False)
                         log.visit = visit
@@ -93,6 +102,9 @@ def borrow_view(request):
                 form.add_error("asset", "This item was just taken by someone else.")
     else:
         form = BorrowForm(initial={"asset": request.GET.get("asset")})
+        form.fields["asset"].queryset = scope_assets(
+            scope, form.fields["asset"].queryset
+        )
 
     return render(request, "equipment/borrow.html", {"form": form, "visit": visit})
 
