@@ -30,6 +30,20 @@ class LabVisit(models.Model):
         max_length=20, choices=Status.choices, default=Status.ACTIVE, db_index=True
     )
 
+    room = models.ForeignKey(
+        "equipment.Room",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="visits",
+    )
+
+    def save(self, *args, **kwargs):
+        # Keep legacy text column in sync so existing views/dashboards still work.
+        if self.room_id:
+            max_len = self._meta.get_field("lab_location").max_length
+            self.lab_location = self.room.name[:max_len]
+        super().save(*args, **kwargs)
     class Meta:
         ordering = ["-check_in_time"]
         constraints = [
