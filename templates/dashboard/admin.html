@@ -7,6 +7,10 @@
     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-100">Administration</p>
     <h1 class="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Admin Dashboard</h1>
     <p class="mt-2 max-w-2xl text-sm leading-6 text-indigo-100 sm:text-base">Welcome, {{ user.first_name|default:user.email }}. Review the system at a glance and manage laboratory resources.</p>
+    <div class="mt-5 flex flex-wrap gap-3">
+      <a href="{% url 'dashboard:central' %}" class="rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/25">Central dashboard</a>
+      <a href="{% url 'users:manage_list' %}" class="rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/25">Manage users</a>
+    </div>
   </section>
 
   <section aria-label="User summary">
