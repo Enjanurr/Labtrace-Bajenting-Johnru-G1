@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from access_logging.models import LabVisit
 from dashboard.choices import pick
-from equipment.models import Asset, EquipmentLog, Room
+from equipment.models import Asset, EquipmentLog
 from incidents.models import Incident
 from incidents.services import change_status, open_incident
 
@@ -21,6 +21,7 @@ LAB_NAMES = ["Computer Lab 1", "Computer Lab 2", "Research Lab"]
 USERS = [  # (local part, role, first, last, department)
     ("demo.admin", "ADMIN", "Alex", "Admin", "Administration"),
     ("demo.instructor", "INSTRUCTOR", "Ines", "Villanueva", "CCS"),
+    ("demo.researcher", "RESEARCHER", "Rafael", "Mendoza", "CCS"),
     ("demo.student1", "STUDENT", "Sofia", "Santos", "CCS"),
     ("demo.student2", "STUDENT", "Miguel", "Reyes", "CCS"),
     ("demo.student3", "STUDENT", "Ana", "Cruz", "CCS"),
@@ -68,7 +69,7 @@ class Command(BaseCommand):
     # ---- cleanup -------------------------------------------------------
     def wipe(self):
         demo_users = User.objects.filter(email__in=demo_emails())
-        Incident.objects.filter(reporter__in=demo_users).delete()
+        Incident.objects.filter(reporter__in=demo_users).delete()       # cascades files/history
         EquipmentLog.objects.filter(asset__asset_code__startswith=ASSET_PREFIX).delete()
         LabVisit.objects.filter(user__in=demo_users).delete()
         Asset.objects.filter(asset_code__startswith=ASSET_PREFIX).delete()
@@ -92,7 +93,7 @@ class Command(BaseCommand):
     # ---- visits / loans / incidents -----------------------------------
     def build_operational_data(self, u):
         now = timezone.now()
-        labs = self.ensure_rooms()
+        labs = self.lab_values()
         purposes = [pick(LabVisit, "purpose", k, default=k.title())
                     for k in ("class", "research", "project", "test")]
         closed = pick(LabVisit, "status", "out", "clos", "complet", "done", "end")
@@ -107,19 +108,10 @@ class Command(BaseCommand):
         assets = {}
         for i, name in enumerate(ASSETS, start=1):
             assets[name] = Asset.objects.create(
-                name=name,
-                asset_code=f"{ASSET_PREFIX}{i:03d}",
-                availability_status=available,
-                room=labs[(i - 1) % len(labs)],
-            )
+                name=name, asset_code=f"{ASSET_PREFIX}{i:03d}", availability_status=available)
 
         def visit(user, lab, purpose, started, ended=None):
-            v = LabVisit.objects.create(
-                user=user,
-                lab_location=lab.name,
-                room=lab,
-                purpose=purpose,
-            )
+            v = LabVisit.objects.create(user=user, lab_location=lab, purpose=purpose)
             fields = {"check_in_time": started}
             if ended:
                 fields.update(check_out_time=ended,
@@ -143,6 +135,7 @@ class Command(BaseCommand):
         h1 = visit(u["demo.student1"], labs[0], purposes[0], now - timedelta(days=3, hours=3), now - timedelta(days=3, hours=1))
         h2 = visit(u["demo.student2"], labs[1], purposes[2], now - timedelta(days=2, hours=5), now - timedelta(days=2, hours=2))
         h3 = visit(u["demo.student3"], labs[0], purposes[0], now - timedelta(days=1, hours=4), now - timedelta(days=1, hours=2))
+        visit(u["demo.researcher"], labs[2], purposes[1], now - timedelta(days=1, hours=8), now - timedelta(days=1, hours=1))
         visit(u["demo.student4"], labs[1], purposes[3], now - timedelta(hours=30), now - timedelta(hours=28))
 
         loan(h1, assets["Webcam Logitech C920"], now - timedelta(days=3, hours=3),
@@ -158,6 +151,8 @@ class Command(BaseCommand):
         a1 = visit(u["demo.student1"], labs[0], purposes[0], now - timedelta(minutes=95))
         a2 = visit(u["demo.student2"], labs[0], purposes[2], now - timedelta(minutes=40))
         a3 = visit(u["demo.student3"], labs[1], purposes[0], now - timedelta(minutes=20))
+        visit(u["demo.researcher"], labs[2], purposes[1], now - timedelta(hours=3))
+
         # Active loans.
         laptop_log = loan(a1, assets["Laptop Dell 5420"], now - timedelta(minutes=85))
         loan(a3, assets["Arduino Starter Kit"], now - timedelta(minutes=15))
@@ -189,33 +184,16 @@ class Command(BaseCommand):
                  C.MALFUNCTION, V.LOW, a2,
                  steps=[(instructor, S.INVESTIGATION, ""),
                         (admin, S.RESOLVED, "Replaced the mouse with a spare.")])
-        incident(
-            u["demo.student4"],
-            "Aircon too loud in Research Lab",
-            "Rattling noise from the ceiling unit.",
-            C.OTHER,
-            V.LOW,
-            steps=[
-                (instructor, S.INVESTIGATION, ""),
-                (admin, S.RESOLVED, "Maintenance tightened the unit."),
-                (admin, S.CLOSED, "Confirmed fixed."),
-            ],
-        )
+        incident(u["demo.researcher"], "Aircon too loud in Research Lab",
+                 "Rattling noise from the ceiling unit.",
+                 C.OTHER, V.LOW,
+                 steps=[(instructor, S.INVESTIGATION, ""),
+                        (admin, S.RESOLVED, "Maintenance tightened the unit."),
+                        (admin, S.CLOSED, "Confirmed fixed.")])
 
     def lab_values(self):
         values = [v for v, _ in LabVisit._meta.get_field("lab_location").flatchoices]
         return values[:3] or LAB_NAMES
-
-    def ensure_rooms(self):
-        rooms = []
-        for name in self.lab_values():
-            prefix = "".join(part[0] for part in name.split() if part).upper()[:8]
-            room, _ = Room.objects.get_or_create(
-                name=name,
-                defaults={"code_prefix": prefix},
-            )
-            rooms.append(room)
-        return rooms
 
     def report(self, password):
         self.stdout.write(self.style.SUCCESS("\nDemo data ready.\n"))

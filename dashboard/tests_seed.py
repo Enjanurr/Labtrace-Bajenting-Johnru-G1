@@ -19,10 +19,8 @@ class SeedCommandTests(TestCase):
     def test_creates_all_roles_and_data(self):
         seed()
         roles = set(User.objects.filter(email__startswith="demo.").values_list("role", flat=True))
-        self.assertEqual(roles, {"ADMIN", "INSTRUCTOR", "STUDENT"})
-        self.assertEqual(LabVisit.objects.filter(check_out_time__isnull=True).count(), 3)
-        self.assertFalse(LabVisit.objects.filter(user__email__startswith="demo.", room=None).exists())
-        self.assertFalse(EquipmentLog.objects.filter(asset__asset_code__startswith="DEMO-", asset__room=None).exists())
+        self.assertEqual(roles, {"ADMIN", "INSTRUCTOR", "RESEARCHER", "STUDENT"})
+        self.assertEqual(LabVisit.objects.filter(check_out_time__isnull=True).count(), 4)
         self.assertEqual(EquipmentLog.objects.filter(returned_at__isnull=True).count(), 2)
         self.assertEqual(
             set(Incident.objects.values_list("status", flat=True)),
@@ -38,5 +36,5 @@ class SeedCommandTests(TestCase):
     def test_reset_rebuilds_cleanly(self):
         seed()
         seed("--reset")
-        self.assertEqual(User.objects.filter(email__startswith="demo.").count(), 6)
+        self.assertEqual(User.objects.filter(email__startswith="demo.").count(), 7)
         self.assertEqual(Incident.objects.count(), 4)

@@ -2,53 +2,161 @@
 {% block title %}Lab Check-in{% endblock %}
 
 {% block content %}
-<div class="mx-auto flex min-h-[65vh] max-w-lg flex-col justify-center py-6 sm:py-10">
-  <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-xl sm:p-8">
-    <div class="flex items-center gap-3">
-      <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-600 text-white shadow-soft-sm shadow-indigo-500/30">
-        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-          <polyline points="10 17 15 12 10 7"></polyline>
-          <line x1="15" y1="12" x2="3" y2="12"></line>
-        </svg>
-      </div>
+<div class="mx-auto max-w-xl py-6 sm:py-8">
+  <div class="mb-5 flex items-center gap-3.5">
+    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-600 text-white shadow-soft-sm shadow-indigo-500/20">
+      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+        <polyline points="10 17 15 12 10 7"/>
+        <line x1="15" y1="12" x2="3" y2="12"/>
+      </svg>
+    </div>
+    <div>
+      <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Lab Session</span>
+      <h1 class="mt-0.5 text-2xl font-extrabold tracking-tight text-slate-900">Laboratory Check-in</h1>
+      <p class="mt-1 text-xs text-slate-500 sm:text-sm">Choose your lab room and visit purpose.</p>
+    </div>
+  </div>
+
+  <form method="post" class="space-y-5 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-soft-sm sm:p-8" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
+      {% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="grid gap-4 sm:grid-cols-2">
       <div>
-        <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Attendance Log</span>
-        <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Laboratory Check-in</h1>
+        <label for="building-filter" class="mb-1 block text-sm font-medium text-slate-700">Building</label>
+        <select id="building-filter"
+                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+          <option value="">All Buildings</option>
+          {% for b in buildings %}<option value="{{ b }}">{{ b }}</option>{% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label for="room-search" class="mb-1 block text-sm font-medium text-slate-700">Search Room</label>
+        <input id="room-search" type="search" autocomplete="off"
+               placeholder="Name, prefix, or type"
+               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+        <p class="mt-1 text-xs text-slate-500">Search by room name, code, or lab type.</p>
       </div>
     </div>
-    
-    <p class="mt-2 text-xs leading-relaxed text-slate-500">
-      Select your assigned facility and intended activity to initiate an active laboratory attendance session.
-    </p>
 
-    <form method="post" novalidate class="mt-6 space-y-4">
-      {% csrf_token %}
+    <div>
+      <label for="id_room" class="mb-1 block text-sm font-medium text-slate-700">Lab Location <span class="text-rose-600">*</span></label>
+      <select name="room" id="id_room" data-selected="{{ selected_room }}"
+              class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+        <option value="">Select a room</option>
+        {% for room in form.room.field.queryset %}
+        <option value="{{ room.pk }}" {% if room.pk|stringformat:"s" == selected_room %}selected{% endif %}>
+          {{ room.name }}{% if room.building %} ({{ room.building }}{% if room.code_prefix %} · {{ room.code_prefix }}{% endif %}){% endif %}
+        </option>
+        {% endfor %}
+      </select>
+      <p id="room-empty" class="mt-1 hidden text-sm text-amber-700" role="status">No matching active rooms found.</p>
+      <p id="room-count" class="mt-1 text-xs text-slate-500" aria-live="polite"></p>
+      {% for e in form.room.errors %}<p class="mt-1 text-sm text-rose-600">{{ e }}</p>{% endfor %}
+    </div>
 
-      {% if form.non_field_errors %}
-      <div class="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/90 p-3.5 text-xs font-medium text-rose-800 shadow-soft-xs">
-        <svg class="h-4 w-4 shrink-0 text-rose-600 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+    <div>
+      <label for="{{ form.purpose.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Purpose</label>
+      {{ form.purpose }}
+      {% for e in form.purpose.errors %}<p class="mt-1 text-sm text-rose-600">{{ e }}</p>{% endfor %}
+    </div>
+
+    <div class="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row">
+      <a href="{% url 'access_logging:my_visits' %}"
+         class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition-all duration-150 hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">
+        Cancel
+      </a>
+      <button type="submit"
+              class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-soft-sm shadow-indigo-600/20 transition-all duration-150 hover:text-purple-200 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:scale-[0.99] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:flex-1">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+          <polyline points="10 17 15 12 10 7"/>
+          <line x1="15" y1="12" x2="3" y2="12"/>
         </svg>
-        <div class="space-y-1">
-          {% for error in form.non_field_errors %}
-          <p>{{ error }}</p>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-
-      {% include "authentication/_field.html" with field=form.lab_location %}
-      {% include "authentication/_field.html" with field=form.purpose %}
-
-      <div class="pt-2">
-        <button type="submit" 
-                class="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-soft-sm shadow-indigo-600/20 transition-all duration-150 hover:bg-indigo-700 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-          <span>Confirm Check-in</span>
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </button>
-      </div>
-    </form>
-  </div>
+        Check in to lab room
+      </button>
+    </div>
+  </form>
 </div>
+
+{{ rooms_data|json_script:"rooms-data" }}
+<script>
+(function () {
+  var rooms = JSON.parse(document.getElementById("rooms-data").textContent);
+  var building = document.getElementById("building-filter");
+  var search = document.getElementById("room-search");
+  var sel = document.getElementById("id_room");
+  var emptyMsg = document.getElementById("room-empty");
+  var count = document.getElementById("room-count");
+  var selected = sel.getAttribute("data-selected") || "";
+
+  function label(r) {
+    var meta = [r.building, r.code_prefix].filter(Boolean).join(" \u2022 ");
+    return r.name + (meta ? " (" + meta + ")" : "");
+  }
+
+  function makeOption(r) {
+    var o = document.createElement("option");
+    o.value = r.id;
+    o.textContent = label(r);
+    if (String(r.id) === selected) o.selected = true;
+    return o;
+  }
+
+  function matches(r) {
+    if (building.value && r.building !== building.value) return false;
+    var terms = search.value.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!terms.length) return true;
+    var hay = [
+      r.name,
+      r.code_prefix,
+      r.lab_type,
+      r.lab_type_display,
+      r.building
+    ].join(" ").toLowerCase();
+    return terms.every(function (t) { return hay.indexOf(t) !== -1; });
+  }
+
+  function render() {
+    if (sel.value) selected = sel.value;           // remember current choice across re-renders
+    var list = rooms.filter(matches);
+    sel.replaceChildren();
+    var ph = document.createElement("option");
+    ph.value = ""; ph.textContent = "Select a room";
+    sel.appendChild(ph);
+
+    if (!building.value) {                          // group by building when showing all
+      var groups = {}, order = [];
+      list.forEach(function (r) {
+        var key = r.building || "Other";
+        if (!groups[key]) { groups[key] = []; order.push(key); }
+        groups[key].push(r);
+      });
+      order.forEach(function (key) {
+        var g = document.createElement("optgroup");
+        g.label = key;
+        groups[key].forEach(function (r) { g.appendChild(makeOption(r)); });
+        sel.appendChild(g);
+      });
+    } else {
+      list.forEach(function (r) { sel.appendChild(makeOption(r)); });
+    }
+
+    emptyMsg.classList.toggle("hidden", list.length > 0);
+    count.textContent = list.length ? list.length + " room" + (list.length > 1 ? "s" : "") + " available" : "";
+  }
+
+  building.addEventListener("change", render);
+  search.addEventListener("input", render);
+  render();
+})();
+</script>
 {% endblock %}

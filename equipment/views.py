@@ -2,8 +2,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.urls import reverse
+from urllib.parse import urlencode
 
 from access_logging.models import LabVisit
 from authentication.models import User
@@ -29,7 +32,9 @@ RETURN_STATUS = {
 def inventory_view(request):
     scope = borrow_scope(request.user)
     qs = filter_assets(request, Asset.objects.all(), scope=scope)
+    q = request.GET.get("q", "").strip()
     status = request.GET.get("status", "")
+
     if status in Asset.Availability.values:
         qs = qs.filter(availability_status=status)
 
@@ -51,7 +56,7 @@ def inventory_view(request):
         "equipment/inventory.html",
         {
             "page_obj": page_obj,
-            "q": request.GET.get("q", "").strip(),
+            "q": q,
             "status": status,
             "statuses": Asset.Availability.choices,
             "querystring": params.urlencode(),
@@ -72,7 +77,7 @@ def borrow_view(request):
         return redirect("access_logging:check_in")
 
     if request.method == "POST":
-        form = BorrowForm(request.POST, request.FILES)
+        form = BorrowForm(request.POST)
         form.fields["asset"].queryset = scope_assets(
             scope, form.fields["asset"].queryset
         )
@@ -89,6 +94,27 @@ def borrow_view(request):
                             "asset",
                             check_borrow_allowed(scope, asset)[1],
                         )
+                    elif form.cleaned_data["pre_condition"] in (
+                        Condition.DAMAGED,
+                        Condition.MALFUNCTIONING,
+                        Condition.MISSING,
+                    ):
+                        asset.availability_status = (
+                            Asset.Availability.MISSING
+                            if form.cleaned_data["pre_condition"] == Condition.MISSING
+                            else Asset.Availability.MAINTENANCE
+                        )
+                        asset.save(update_fields=["availability_status"])
+                        params = urlencode({
+                            "visit": visit.pk,
+                            "asset": asset.pk,
+                            "condition": form.cleaned_data["pre_condition"],
+                        })
+                        messages.warning(
+                            request,
+                            f"{asset.asset_code} is defective and cannot be borrowed.",
+                        )
+                        return redirect(f"{reverse('incidents:new')}?{params}")
                     else:
                         log = form.save(commit=False)
                         log.visit = visit
@@ -141,6 +167,13 @@ def return_view(request, pk):
                     f"and marked {asset.get_availability_status_display()}. "
                     "Consider filing an incident report.",
                 )
+                params = urlencode({
+                    "visit": log.visit_id,
+                    "log": log.pk,
+                    "asset": asset.pk,
+                    "condition": entry.post_condition,
+                })
+                return redirect(f"{reverse('incidents:new')}?{params}")
             return redirect("equipment:mine")
     else:
         form = ReturnForm(instance=log)
@@ -151,7 +184,7 @@ def return_view(request, pk):
 @login_required
 def my_equipment_view(request):
     mine = EquipmentLog.objects.filter(visit__user=request.user).select_related(
-        "asset", "visit"
+        "asset", "visit", "visit__room"
     )
     current = mine.filter(returned_at__isnull=True)
     history = mine.filter(returned_at__isnull=False)

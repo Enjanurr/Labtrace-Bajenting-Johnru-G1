@@ -1,55 +1,37 @@
-from types import SimpleNamespace
-from unittest.mock import Mock, patch
-
 from django.contrib.auth import get_user_model
-from django.test import RequestFactory, SimpleTestCase, TestCase
+from django.test import TestCase
 from django.urls import reverse
 
 from access_logging.models import LabVisit
 
-from .models import Asset, Condition, EquipmentLog, Room
-from .room_scope import BorrowScope, borrow_scope
+from .forms import AssetForm, BorrowForm, ReturnForm, RoomForm
+from .models import (
+    Asset,
+    CONDITION_CHOICES,
+    Condition,
+    EquipmentLog,
+    Room,
+)
+from .room_scope import borrow_scope
 
-from . import views
-
-
-class InventoryViewTests(SimpleTestCase):
-    def test_inventory_renders_html_template(self):
-        request = RequestFactory().get("/equipment/")
-        request.user = SimpleNamespace(is_authenticated=True)
-        open_logs = Mock()
-        open_logs.select_related.return_value = []
-        scope = BorrowScope(restricted=False)
-
-        with (
-            patch("equipment.views.Asset.objects.all", return_value=[]),
-            patch("equipment.views.EquipmentLog.objects.filter", return_value=open_logs),
-            patch("equipment.views.borrow_scope", return_value=scope),
-            patch("equipment.views.filter_assets", side_effect=lambda request, qs, scope=None: qs),
-            patch("equipment.views.filter_context", return_value={}),
-            patch("equipment.views.render") as render_mock,
-        ):
-            views.inventory_view(request)
-
-        self.assertEqual(render_mock.call_args.args[1], "equipment/inventory.html")
+User = get_user_model()
 
 
-class RoomBorrowScopeTests(TestCase):
+class EquipmentBehaviorTests(TestCase):
     def setUp(self):
-        user_model = get_user_model()
-        self.user = user_model.objects.create_user(
-            username="student",
-            email="student@cit.edu",
-            password="testpass",
-            role=user_model.Role.STUDENT,
+        self.user = User.objects.create_user(
+            username="labuser",
+            email="labuser@cit.edu",
+            password="SecurePass123!",
         )
+        self.client.force_login(self.user)
         self.room = Room.objects.create(
             name="Computer Lab 1",
             code_prefix="CL1",
         )
         self.visit = LabVisit.objects.create(
             user=self.user,
-            lab_location=self.room.name,
+            lab_location="Computer Lab 1",
             purpose=LabVisit.Purpose.CLASS,
             room=self.room,
         )
@@ -58,29 +40,220 @@ class RoomBorrowScopeTests(TestCase):
             name="Microscope",
             room=self.room,
         )
-        self.client.force_login(self.user)
 
-    def test_borrow_scope_limits_asset_to_active_visit_room(self):
-        other_room = Room.objects.create(
-            name="Electronics Lab",
-            code_prefix="EL",
+    def test_inventory_and_borrow_templates_resolve(self):
+        response = self.client.get(reverse("equipment:inventory"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "equipment/inventory.html")
+
+        response = self.client.get(reverse("equipment:borrow"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "equipment/borrow.html")
+
+    def test_history_return_and_staff_asset_templates_resolve(self):
+        log = EquipmentLog.objects.create(
+            visit=self.visit,
+            asset=self.asset,
+            pre_condition=Condition.GOOD,
         )
+        self.asset.availability_status = Asset.Availability.BORROWED
+        self.asset.save(update_fields=["availability_status"])
+
+        response = self.client.get(reverse("equipment:mine"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "equipment/my_equipment.html")
+
+        response = self.client.get(
+            reverse("equipment:return", kwargs={"pk": log.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "equipment/return.html")
+
+        self.user.role = User.Role.INSTRUCTOR
+        self.user.save(update_fields=["role"])
+        response = self.client.get(reverse("equipment:asset_new"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "equipment/asset_form.html")
+
+    def test_borrow_and_return_update_equipment_availability(self):
+        response = self.client.post(
+            reverse("equipment:borrow"),
+            {"asset": self.asset.pk, "pre_condition": Condition.GOOD},
+        )
+
+        self.assertRedirects(response, reverse("equipment:mine"))
+        log = EquipmentLog.objects.get(asset=self.asset)
+        self.asset.refresh_from_db()
+        self.assertEqual(self.asset.availability_status, Asset.Availability.BORROWED)
+        self.assertIsNone(log.returned_at)
+
+        response = self.client.post(
+            reverse("equipment:return", kwargs={"pk": log.pk}),
+            {"post_condition": Condition.GOOD},
+        )
+
+        self.assertRedirects(response, reverse("equipment:mine"))
+        log.refresh_from_db()
+        self.asset.refresh_from_db()
+        self.assertIsNotNone(log.returned_at)
+        self.assertEqual(self.asset.availability_status, Asset.Availability.AVAILABLE)
+
+    def test_borrowing_requires_an_active_visit(self):
+        self.visit.status = LabVisit.Status.COMPLETED
+        self.visit.save(update_fields=["status"])
+
+        response = self.client.get(reverse("equipment:borrow"))
+
+        self.assertRedirects(response, reverse("access_logging:check_in"))
+        self.assertFalse(EquipmentLog.objects.exists())
+
+    def test_defective_asset_is_blocked_and_return_defect_updates_status(self):
+        for status in (
+            Asset.Availability.MAINTENANCE,
+            Asset.Availability.MISSING,
+        ):
+            self.asset.availability_status = status
+            self.asset.save(update_fields=["availability_status"])
+            response = self.client.post(
+                reverse("equipment:borrow"),
+                {"asset": self.asset.pk, "pre_condition": Condition.GOOD},
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertFalse(EquipmentLog.objects.filter(asset=self.asset).exists())
+
+        self.asset.availability_status = Asset.Availability.BORROWED
+        self.asset.save(update_fields=["availability_status"])
+        log = EquipmentLog.objects.create(
+            visit=self.visit,
+            asset=self.asset,
+            pre_condition=Condition.GOOD,
+        )
+        response = self.client.post(
+            reverse("equipment:return", kwargs={"pk": log.pk}),
+            {"post_condition": Condition.DAMAGED},
+        )
+        self.asset.refresh_from_db()
+        self.assertEqual(
+            self.asset.availability_status,
+            Asset.Availability.MAINTENANCE,
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("incidents:new"), response["Location"])
+
+    def test_borrow_and_return_forms_use_the_shared_condition_choices(self):
+        borrow_form = BorrowForm()
+        return_form = ReturnForm()
+        expected = [choice[0] for choice in CONDITION_CHOICES]
+        self.assertEqual(
+            [choice[0] for choice in borrow_form.fields["pre_condition"].choices
+             if choice[0]],
+            expected,
+        )
+        self.assertEqual(
+            [choice[0] for choice in return_form.fields["post_condition"].choices
+             if choice[0]],
+            expected,
+        )
+
+
+class RoomAndAssetCodeTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            username="roomadmin",
+            email="roomadmin@cit.edu",
+            password="SecurePass123!",
+            role=User.Role.ADMIN,
+        )
+        self.client.force_login(self.admin)
+
+    def test_room_form_derives_unique_prefix(self):
+        form = RoomForm(
+            data={
+                "name": "Computer Lab 1",
+                "code_prefix": "",
+                "lab_type": Room.LabType.COMPUTER,
+                "building": "Main",
+                "capacity": 30,
+                "is_active": True,
+            }
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        room = form.save()
+        self.assertEqual(room.code_prefix, "CL1")
+
+    def test_asset_form_generates_sequential_codes_and_filters_by_room(self):
+        room = Room.objects.create(
+            name="Computer Lab 1",
+            code_prefix="CL1",
+        )
+        other_room = Room.objects.create(
+            name="Computer Lab 2",
+            code_prefix="CL2",
+        )
+
+        first_form = AssetForm(
+            data={
+                "room": room.pk,
+                "name": "Microscope",
+                "availability_status": Asset.Availability.AVAILABLE,
+            }
+        )
+        self.assertTrue(first_form.is_valid(), first_form.errors)
+        first = first_form.save()
+
+        second_form = AssetForm(
+            data={
+                "room": room.pk,
+                "name": "Projector",
+                "availability_status": Asset.Availability.AVAILABLE,
+            }
+        )
+        self.assertTrue(second_form.is_valid(), second_form.errors)
+        second = second_form.save()
+
+        other = Asset.objects.create(
+            asset_code="CL2-001",
+            name="Router",
+            room=other_room,
+        )
+
+        self.assertEqual(first.asset_code, "CL1-001")
+        self.assertEqual(second.asset_code, "CL1-002")
+        response = self.client.get(
+            reverse("equipment:inventory"),
+            {"room": str(room.pk)},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Microscope")
+        self.assertContains(response, "Projector")
+        self.assertNotContains(response, other.name)
+
+    def test_invalid_room_filter_is_safe(self):
+        response = self.client.get(
+            reverse("equipment:inventory"),
+            {"room": "not-a-room"},
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_inventory_is_limited_to_active_visit_room(self):
+        other_room = Room.objects.create(name="Electronics Lab", code_prefix="EL")
         other_asset = Asset.objects.create(
             asset_code="EL-001",
             name="Oscilloscope",
             room=other_room,
         )
 
-        response = self.client.get(reverse("equipment:inventory"))
+        response = self.client.get(
+            reverse("equipment:inventory"),
+            {"room": str(other_room.pk)},
+        )
 
         self.assertContains(response, self.asset.name)
         self.assertNotContains(response, other_asset.name)
+        self.assertEqual(response.context["scope"].room, self.room)
 
     def test_borrow_rejects_asset_from_another_room(self):
-        other_room = Room.objects.create(
-            name="Electronics Lab",
-            code_prefix="EL",
-        )
+        other_room = Room.objects.create(name="Electronics Lab", code_prefix="EL")
         other_asset = Asset.objects.create(
             asset_code="EL-001",
             name="Oscilloscope",
@@ -89,84 +262,38 @@ class RoomBorrowScopeTests(TestCase):
 
         response = self.client.post(
             reverse("equipment:borrow"),
-            {
-                "asset": other_asset.pk,
-                "pre_condition": Condition.GOOD,
-            },
+            {"asset": other_asset.pk, "pre_condition": Condition.GOOD},
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(
-            EquipmentLog.objects.filter(asset=other_asset).exists()
-        )
-
-
-class EquipmentReturningTests(TestCase):
-    def setUp(self):
-        user_model = get_user_model()
-        self.user = user_model.objects.create_user(
-            username="returner",
-            email="returner@cit.edu",
-            password="testpass",
-            role=user_model.Role.STUDENT,
-        )
-        self.room = Room.objects.create(
-            name="Computer Lab 1",
-            code_prefix="CL1",
-        )
-        self.visit = LabVisit.objects.create(
-            user=self.user,
-            lab_location=self.room.name,
-            purpose=LabVisit.Purpose.CLASS,
-            room=self.room,
-        )
-        self.asset = Asset.objects.create(
-            asset_code="CL1-001",
-            name="Microscope",
-            room=self.room,
-            availability_status=Asset.Availability.BORROWED,
-        )
-        self.log = EquipmentLog.objects.create(
-            visit=self.visit,
-            asset=self.asset,
-            pre_condition=Condition.GOOD,
-        )
-        self.client.force_login(self.user)
-
-    def test_owner_can_return_asset_with_notes(self):
-        response = self.client.post(
-            reverse("equipment:return", kwargs={"pk": self.log.pk}),
-            {
-                "post_condition": Condition.GOOD,
-                "post_condition_notes": "Returned in good condition.",
-            },
-        )
-
-        self.assertRedirects(response, reverse("equipment:mine"))
-        self.log.refresh_from_db()
-        self.asset.refresh_from_db()
-        self.assertIsNotNone(self.log.returned_at)
+        self.assertFalse(EquipmentLog.objects.filter(asset=other_asset).exists())
+        other_asset.refresh_from_db()
         self.assertEqual(
-            self.log.post_condition_notes,
-            "Returned in good condition.",
-        )
-        self.assertEqual(
-            self.asset.availability_status,
+            other_asset.availability_status,
             Asset.Availability.AVAILABLE,
         )
 
-    def test_damaged_return_moves_asset_to_maintenance(self):
-        response = self.client.post(
-            reverse("equipment:return", kwargs={"pk": self.log.pk}),
-            {
-                "post_condition": Condition.DAMAGED,
-                "post_condition_notes": "Cracked casing.",
-            },
+    def test_staff_inventory_remains_unrestricted(self):
+        other_room = Room.objects.create(name="Electronics Lab", code_prefix="EL")
+        other_asset = Asset.objects.create(
+            asset_code="EL-001",
+            name="Oscilloscope",
+            room=other_room,
         )
+        self.user.role = User.Role.INSTRUCTOR
+        self.user.save(update_fields=["role"])
 
-        self.assertRedirects(response, reverse("equipment:mine"))
-        self.asset.refresh_from_db()
-        self.assertEqual(
-            self.asset.availability_status,
-            Asset.Availability.MAINTENANCE,
-        )
+        response = self.client.get(reverse("equipment:inventory"))
+
+        self.assertContains(response, self.asset.name)
+        self.assertContains(response, other_asset.name)
+        self.assertFalse(response.context["scope"].restricted)
+
+    def test_legacy_visit_resolves_room_by_location(self):
+        self.visit.room = None
+        self.visit.save(update_fields=["room"])
+
+        scope = borrow_scope(self.user)
+
+        self.assertEqual(scope.room, self.room)
+        self.assertEqual(scope.visit, self.visit)

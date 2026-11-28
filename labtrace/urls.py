@@ -13,4 +13,5 @@ urlpatterns = [
     path("visits/", include("access_logging.urls")),
     path("equipment/", include("equipment.urls")),
     path("incidents/", include("incidents.urls")),
+    # path("incidents/", include("incidents.urls")),
 ]

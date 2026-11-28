@@ -17,7 +17,7 @@
         <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Report an Incident</h1>
       </div>
     </div>
-
+    
     <p class="mt-2 text-xs leading-relaxed text-slate-500">
       Accurately describe the event. If related to an active visit or loaned equipment piece, link them below.
     </p>
@@ -60,11 +60,11 @@
       {% endfor %}
 
       <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-3">
-        <a href="{% url 'incidents:list' %}"
+        <a href="{% url 'incidents:list' %}" 
            class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
           Cancel
         </a>
-        <button type="submit"
+        <button type="submit" 
                 class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-soft-sm shadow-indigo-600/20 transition-all duration-150 hover:bg-indigo-700 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
           <span>Submit Report</span>
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>

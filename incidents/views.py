@@ -116,3 +116,4 @@ def incident_status(request, pk):
         for errors in form.errors.values():
             messages.error(request, errors[0])
     return redirect("incidents:detail", pk=incident.pk)
+

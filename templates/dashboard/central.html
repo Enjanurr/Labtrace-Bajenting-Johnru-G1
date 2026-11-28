@@ -24,6 +24,13 @@
         <p class="mt-1 text-xs sm:text-sm text-slate-500">Real-time facility occupancy, hardware circulation telemetry, and incident dispatch monitoring.</p>
       </div>
 
+      <div class="flex items-center gap-3">
+        <a href="{% url 'dashboard:audit' %}" 
+           class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-soft-xs hover:bg-slate-50 hover:border-slate-300 transition-colors">
+          <svg class="h-4 w-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          Audit trail
+        </a>
+      </div>
     </div>
   </div>
 
@@ -313,7 +320,7 @@
       <div>
         <h2 class="text-base font-bold text-slate-900">Unresolved Incidents Dispatch</h2>
         <p class="text-xs text-slate-500">
-          <span id="incident-reported" class="font-semibold text-amber-600">{{ incidents.reported }}</span> reported &middot;
+          <span id="incident-reported" class="font-semibold text-amber-600">{{ incidents.reported }}</span> reported &middot; 
           <span id="incident-investigation" class="font-semibold text-blue-600">{{ incidents.investigation }}</span> under investigation
         </p>
       </div>

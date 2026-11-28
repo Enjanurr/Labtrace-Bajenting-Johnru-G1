@@ -88,7 +88,7 @@
         {{ status_form.note }}
         <p class="text-xs text-slate-400">{{ status_form.note.help_text }}</p>
       </div>
-      <button type="submit"
+      <button type="submit" 
               class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-soft-xs hover:bg-indigo-700 transition-colors">
         Apply Status Change
       </button>
@@ -119,7 +119,7 @@
 
   <!-- Back Link -->
   <div>
-    <a href="{% url 'incidents:list' %}"
+    <a href="{% url 'incidents:list' %}" 
        class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
       <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
       Back to Incident Desk
