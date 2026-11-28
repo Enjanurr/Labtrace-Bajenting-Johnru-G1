@@ -1,0 +1,68 @@
+{% if scope.restricted %}
+  {% if scope.reason == "no_visit" %}
+    <div class="mb-4 rounded-2xl border border-amber-200/90 bg-gradient-to-br from-amber-50/90 to-white p-5 shadow-soft-sm sm:p-6" role="alert">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-start gap-3.5">
+          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 ring-4 ring-amber-50">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 21h18"/>
+              <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>
+              <path d="M9 21v-6h6v6"/>
+              <path d="M9 9h.01M15 9h.01M9 13h.01M15 13h.01"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-amber-700">Lab session required</p>
+            <h2 class="mt-1 text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">Check in to a lab room first</h2>
+            <p class="mt-1 max-w-xl text-xs leading-5 text-slate-600 sm:text-sm">
+              Equipment is only shown and available for the room in your active laboratory visit.
+            </p>
+          </div>
+        </div>
+
+        <a href="{% url 'access_logging:check_in' %}"
+           class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-soft-sm shadow-indigo-600/20 transition-all duration-150 hover:bg-indigo-700 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          Check in to lab room
+        </a>
+      </div>
+    </div>
+  {% elif scope.reason == "no_room" %}
+    <div class="mb-4 rounded-2xl border border-amber-200/90 bg-gradient-to-br from-amber-50/90 to-white p-5 shadow-soft-sm" role="alert">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-start gap-3.5">
+          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 ring-4 ring-amber-50">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-amber-700">Lab session needs attention</p>
+            <h2 class="mt-1 text-lg font-extrabold tracking-tight text-slate-900">Room is not linked to this visit</h2>
+            <p class="mt-1 text-xs leading-5 text-slate-600 sm:text-sm">
+              Check out and check in again to select a laboratory room before borrowing equipment.
+            </p>
+          </div>
+        </div>
+        <a href="{% url 'access_logging:my_visits' %}"
+           class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-soft-sm shadow-indigo-600/20 transition-all duration-150 hover:bg-indigo-700 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+          View active visit
+        </a>
+      </div>
+    </div>
+  {% else %}
+    <div class="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-800 flex items-center justify-between">
+      <div>
+        <p class="text-xs uppercase tracking-wide">Viewing equipment for</p>
+        <p class="font-semibold">{{ scope.room.name }}
+          <span class="ml-1 px-2 py-0.5 rounded bg-white text-blue-700 text-xs font-mono">{{ scope.room.code_prefix }}</span>
+          {% if scope.room.building %}<span class="text-sm font-normal text-blue-700">• {{ scope.room.building }}</span>{% endif %}
+        </p>
+      </div>
+    </div>
+  {% endif %}
+{% endif %}

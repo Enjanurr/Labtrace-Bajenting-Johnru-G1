@@ -91,7 +91,7 @@ def incident_summary():
         "investigation": by.get(Incident.Status.INVESTIGATION, 0),
         "latest": qs.select_related("reporter").order_by("-created_at")[:5],
     }
-
+    
 def _label_map(model, field):
     return dict(model._meta.get_field(field).flatchoices)
 

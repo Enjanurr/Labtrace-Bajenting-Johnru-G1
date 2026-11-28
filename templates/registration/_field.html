@@ -1,16 +1,28 @@
-<div class="field min-w-0 space-y-1">
-  <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ field.label }}</label>
-  <div class="relative mt-1">
+<div class="field min-w-0 space-y-1.5">
+  {% if field.label %}
+  <label for="{{ field.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+    {{ field.label }}
+    {% if field.field.required %}<span class="text-rose-500">*</span>{% endif %}
+  </label>
+  {% endif %}
+  <div class="relative">
     {{ field }}
     {% if toggle %}
     <button type="button" data-target="#{{ field.id_for_label }}"
-            class="toggle-password absolute inset-y-0 right-0 rounded-r-lg px-3 text-xs font-medium text-slate-500 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Show</button>
+            class="toggle-password absolute inset-y-0 right-0 flex items-center rounded-r-xl px-3.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors focus:outline-none">
+      Show
+    </button>
     {% endif %}
   </div>
   {% if field.help_text and not field.errors %}
-  <p class="mt-1 text-xs text-slate-500">{{ field.help_text }}</p>
+  <p class="text-xs text-slate-500 leading-relaxed">{{ field.help_text }}</p>
   {% endif %}
   {% for error in field.errors %}
-  <p class="field-error mt-1 text-xs font-medium text-red-600">{{ error }}</p>
+  <p class="field-error flex items-center gap-1.5 text-xs font-medium text-rose-600">
+    <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+    </svg>
+    {{ error }}
+  </p>
   {% endfor %}
 </div>

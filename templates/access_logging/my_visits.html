@@ -20,7 +20,10 @@
             </span>
             <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Currently Checked In</span>
           </div>
-          <h1 class="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">{{ current.lab_location }}</h1>
+          <h1 class="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">{{ current.room.name|default:current.lab_location }}</h1>
+          {% if current.room.building %}
+          <p class="mt-0.5 text-xs font-medium text-slate-500">{{ current.room.building }} &middot; {{ current.room.code_prefix }}</p>
+          {% endif %}
           <p class="mt-0.5 text-xs text-slate-600">
             {{ current.get_purpose_display }} &middot; Since <span class="font-medium text-slate-900">{{ current.check_in_time|date:"M d, H:i" }}</span> ({{ current.check_in_time|timesince }} ago)
           </p>
@@ -102,7 +105,8 @@
           {% for v in page_obj %}
           <tr class="hover:bg-slate-50/70 transition-colors">
             <td class="whitespace-nowrap px-6 py-4 font-semibold text-slate-900 text-xs">
-              {{ v.lab_location }}
+              {{ v.room.name|default:v.lab_location }}
+              {% if v.room.building %}<span class="block text-[11px] font-normal text-slate-500">{{ v.room.building }} &middot; {{ v.room.code_prefix }}</span>{% endif %}
             </td>
             <td class="whitespace-nowrap px-6 py-4 text-xs text-slate-600">
               {{ v.get_purpose_display }}

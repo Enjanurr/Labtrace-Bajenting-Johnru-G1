@@ -1,69 +1,389 @@
-
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>{% block title %}LabTrace{% endblock %} | LabTrace</title>
+    <title>{% block title %}LabTrace{% endblock %} | LabTrace Operations</title>
+    
+    <!-- Modern Favicon (LabTrace Brand Flask) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='100%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%234f46e5'/%3E%3Cstop offset='100%25' stop-color='%232563eb'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' transform='translate(4, 4)'%3E%3Cpath d='M10 2v7.31'/%3E%3Cpath d='M14 9.3V1.99'/%3E%3Cpath d='M8.5 2h7'/%3E%3Cpath d='M14 9.3a6.5 6.5 0 1 1-4 0'/%3E%3Cpath d='M5.52 16h12.96'/%3E%3C/g%3E%3C/svg%3E">
+    <link rel="alternate icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+    
+    <!-- Modern Web Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+                    },
+                    boxShadow: {
+                        'soft-xs': '0 1px 2px 0 rgba(15, 23, 42, 0.04)',
+                        'soft-sm': '0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04)',
+                        'soft-md': '0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05)',
+                        'soft-lg': '0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04)',
+                        'soft-xl': '0 20px 25px -5px rgba(15, 23, 42, 0.09), 0 8px 10px -6px rgba(15, 23, 42, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+        code, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
+        [x-cloak] { display: none !important; }
+    </style>
+    {% block extra_head %}{% endblock %}
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+<body class="flex min-h-full flex-col bg-slate-50 text-slate-800 antialiased selection:bg-indigo-500 selection:text-white">
 
     {% if user.is_authenticated %}
-    <header class="border-b border-slate-200/80 bg-white shadow-sm">
-        <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-            <div class="flex flex-wrap items-center justify-between gap-x-8 gap-y-3">
-                <a href="{% url 'dashboard:home' %}" class="flex items-center gap-2 rounded-lg border border-transparent px-2 py-1 text-lg font-bold tracking-tight text-slate-900 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-sm font-bold text-white shadow-sm">L</span>
-                    LabTrace
+    <!-- Top Modern Navigation -->
+    <header class="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-xs">
+        <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6 lg:px-8">
+            
+            <!-- Left: Brand Logo -->
+            <div class="flex items-center shrink-0">
+                <a href="{% url 'dashboard:home' %}" class="group flex items-center gap-2.5 text-slate-900 transition focus:outline-none">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-blue-600 text-white shadow-soft-sm shadow-indigo-500/25 transition-transform duration-200 group-hover:scale-105">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 2v7.31"></path>
+                            <path d="M14 9.3V1.99"></path>
+                            <path d="M8.5 2h7"></path>
+                            <path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path>
+                            <path d="M5.52 16h12.96"></path>
+                        </svg>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-base font-extrabold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">LabTrace</span>
+                        <span class="-mt-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Laboratory Operations</span>
+                    </div>
                 </a>
-                <nav aria-label="Main navigation" class="flex flex-wrap items-center gap-1 text-sm font-medium sm:gap-1.5">
-                    <a href="{% url 'dashboard:home' %}" class="inline-flex items-center rounded-lg border px-3 py-2 transition duration-150 active:border-slate-200 active:bg-slate-100 active:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 {% if request.resolver_match.view_name == 'dashboard:home' %}border-slate-200 bg-slate-100 text-slate-800 shadow-sm hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% else %}border-transparent text-slate-600 hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% endif %}" {% if request.resolver_match.view_name == 'dashboard:home' %}aria-current="page"{% endif %}>Dashboard</a>
-                    <a href="{% url 'users:profile' %}" class="inline-flex items-center rounded-lg border px-3 py-2 transition duration-150 active:border-slate-200 active:bg-slate-100 active:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 {% if request.resolver_match.view_name == 'users:profile' %}border-slate-200 bg-slate-100 text-slate-800 shadow-sm hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% else %}border-transparent text-slate-600 hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% endif %}" {% if request.resolver_match.view_name == 'users:profile' %}aria-current="page"{% endif %}>My Profile</a>
-                    <a href="{% url 'access_logging:check_in' %}" class="inline-flex items-center rounded-lg border px-3 py-2 transition duration-150 active:border-slate-200 active:bg-slate-100 active:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 {% if request.resolver_match.view_name == 'access_logging:check_in' %}border-slate-200 bg-slate-100 text-slate-800 shadow-sm hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% else %}border-transparent text-slate-600 hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% endif %}" {% if request.resolver_match.view_name == 'access_logging:check_in' %}aria-current="page"{% endif %}>Check in</a>
-                    <a href="{% url 'access_logging:my_visits' %}" class="inline-flex items-center rounded-lg border px-3 py-2 transition duration-150 active:border-slate-200 active:bg-slate-100 active:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 {% if request.resolver_match.view_name == 'access_logging:my_visits' %}border-slate-200 bg-slate-100 text-slate-800 shadow-sm hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% else %}border-transparent text-slate-600 hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% endif %}" {% if request.resolver_match.view_name == 'access_logging:my_visits' %}aria-current="page"{% endif %}>My visits</a>
-                    <a href="{% url 'equipment:inventory' %}" class="inline-flex items-center rounded-lg border px-3 py-2 transition duration-150 active:border-slate-200 active:bg-slate-100 active:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 {% if request.resolver_match.view_name == 'equipment:inventory' %}border-slate-200 bg-slate-100 text-slate-800 shadow-sm hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% else %}border-transparent text-slate-600 hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% endif %}" {% if request.resolver_match.view_name == 'equipment:inventory' %}aria-current="page"{% endif %}>Equipment</a>
-                    <a href="{% url 'equipment:mine' %}" class="inline-flex items-center rounded-lg border px-3 py-2 transition duration-150 active:border-slate-200 active:bg-slate-100 active:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 {% if request.resolver_match.view_name == 'equipment:mine' %}border-slate-200 bg-slate-100 text-slate-800 shadow-sm hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% else %}border-transparent text-slate-600 hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% endif %}" {% if request.resolver_match.view_name == 'equipment:mine' %}aria-current="page"{% endif %}>My equipment</a>
-
-                    {% if user.is_staff_role %}
-                    <a href="{% url 'access_logging:active' %}" class="inline-flex items-center rounded-lg border px-3 py-2 transition duration-150 active:border-slate-200 active:bg-slate-100 active:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 {% if request.resolver_match.view_name == 'access_logging:active' %}border-slate-200 bg-slate-100 text-slate-800 shadow-sm hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% else %}border-transparent text-slate-600 hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% endif %}" {% if request.resolver_match.view_name == 'access_logging:active' %}aria-current="page"{% endif %}>Active visits</a>
-                    {% endif %}
-
-                    {% if user.is_admin_role %}
-                    <a href="{% url 'users:manage_list' %}" class="inline-flex items-center rounded-lg border px-3 py-2 transition duration-150 active:border-slate-200 active:bg-slate-100 active:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 {% if request.resolver_match.view_name == 'users:manage_list' %}border-slate-200 bg-slate-100 text-slate-800 shadow-sm hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% else %}border-transparent text-slate-600 hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]{% endif %}" {% if request.resolver_match.view_name == 'users:manage_list' %}aria-current="page"{% endif %}>Users</a>
-                    {% endif %}
-                </nav>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3 text-sm">
-                <a href="{% url 'users:profile' %}" class="inline-flex items-center gap-2 rounded-lg border border-transparent px-3 py-2 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] active:border-slate-200 active:bg-slate-100 active:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 {% if request.resolver_match.view_name == 'users:profile' %}border-slate-200 bg-slate-100 text-slate-800 ring-1 ring-slate-200{% else %}bg-slate-50 text-slate-700{% endif %}">
-                    <span class="font-medium">{{ user.username }}</span>
-                    <span class="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">{{ user.get_role_display }}</span>
+            <!-- Center: Desktop Navigation Links -->
+            <nav aria-label="Main navigation" class="hidden lg:flex flex-1 items-center justify-center gap-1.5 text-sm font-medium px-4">
+                <!-- Item 1: Dashboard -->
+                <a href="{% url 'dashboard:home' %}" 
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-150 {% if request.resolver_match.view_name == 'dashboard:home' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}"
+                   {% if request.resolver_match.view_name == 'dashboard:home' %}aria-current="page"{% endif %}>
+                    <svg class="h-4 w-4 opacity-75" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+                    Dashboard
+                </a>
+
+                <!-- Item 2: Check In -->
+                <a href="{% url 'access_logging:check_in' %}" 
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-150 {% if request.resolver_match.view_name == 'access_logging:check_in' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}"
+                   {% if request.resolver_match.view_name == 'access_logging:check_in' %}aria-current="page"{% endif %}>
+                    <svg class="h-4 w-4 opacity-75" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    Check In
+                </a>
+
+                <!-- Item 3: My Visits -->
+                <a href="{% url 'access_logging:my_visits' %}" 
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-150 {% if request.resolver_match.view_name == 'access_logging:my_visits' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}"
+                   {% if request.resolver_match.view_name == 'access_logging:my_visits' %}aria-current="page"{% endif %}>
+                    <svg class="h-4 w-4 opacity-75" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    My Visits
+                </a>
+
+                <!-- Item 4: Equipment -->
+                <a href="{% url 'equipment:inventory' %}" 
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-150 {% if request.resolver_match.view_name == 'equipment:inventory' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}"
+                   {% if request.resolver_match.view_name == 'equipment:inventory' %}aria-current="page"{% endif %}>
+                    <svg class="h-4 w-4 opacity-75" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                    Equipment
+                </a>
+
+                <!-- Item 5+: "Manage" Dropdown Menu for Secondary Items -->
+                <div class="relative" id="nav-manage-container">
+                    <button type="button" 
+                            id="nav-manage-button"
+                            aria-expanded="false" 
+                            aria-haspopup="true"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 {% if request.resolver_match.view_name == 'equipment:mine' or request.resolver_match.view_name == 'incidents:list' or request.resolver_match.view_name == 'incidents:detail' or request.resolver_match.view_name == 'access_logging:active' or request.resolver_match.view_name == 'dashboard:central' or request.resolver_match.view_name == 'dashboard:audit' or request.resolver_match.view_name == 'users:manage_list' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}">
+                        <span>Manage</span>
+                        <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="nav-manage-chevron" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+
+                    <!-- Secondary Links Dropdown Panel -->
+                    <div id="nav-manage-dropdown" 
+                         class="hidden absolute left-1/2 -translate-x-1/2 mt-2 w-56 origin-top rounded-2xl border border-slate-200/90 bg-white p-2 shadow-soft-xl transition-all duration-200 z-50">
+                        
+                        <div class="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Operations &amp; Tools
+                        </div>
+
+                        <a href="{% url 'equipment:mine' %}" 
+                           class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-colors {% if request.resolver_match.view_name == 'equipment:mine' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-700 hover:bg-slate-100 hover:text-indigo-600{% endif %}">
+                            <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                            My Equipment
+                        </a>
+
+                        <a href="{% url 'incidents:list' %}" 
+                           class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-colors {% if request.resolver_match.view_name == 'incidents:list' or request.resolver_match.view_name == 'incidents:detail' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-700 hover:bg-slate-100 hover:text-indigo-600{% endif %}">
+                            <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            Incidents
+                        </a>
+
+                        {% if user.is_staff_role or user.role == "INSTRUCTOR" or user.role == "ADMIN" or user.is_admin_role %}
+                        <div class="my-1 border-t border-slate-100"></div>
+                        <div class="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Staff &amp; Administration
+                        </div>
+                        {% endif %}
+                        {% if user.is_superuser or user.role == "ADMIN" %}
+                        <a href="{% url 'equipment:room_list' %}"
+                           class="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition-colors {% if request.resolver_match.view_name == 'equipment:room_list' or request.resolver_match.view_name == 'equipment:room_create' or request.resolver_match.view_name == 'equipment:room_edit' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-700 hover:bg-slate-100 hover:text-indigo-600{% endif %}">
+                            Rooms
+                        </a>
+                        <a href="{% url 'equipment:room_create' %}"
+                           class="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition-colors {% if request.resolver_match.view_name == 'equipment:room_create' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-700 hover:bg-slate-100 hover:text-indigo-600{% endif %}">
+                            <span class="flex items-center gap-2">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M3 21h18"/>
+                                    <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>
+                                    <path d="M9 21v-6h6v6"/>
+                                    <path d="M12 7v4M10 9h4"/>
+                                </svg>
+                                Add Room
+                            </span>
+                        </a>
+                        {% endif %}
+
+                        {% if user.is_staff_role %}
+                        <a href="{% url 'access_logging:active' %}" 
+                           class="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition-colors {% if request.resolver_match.view_name == 'access_logging:active' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-700 hover:bg-slate-100 hover:text-indigo-600{% endif %}">
+                            <div class="flex items-center gap-2.5">
+                                <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <span>Active Visits</span>
+                            </div>
+                            <span class="relative flex h-2 w-2">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                        </a>
+                        {% endif %}
+
+                        {% if user.role == "INSTRUCTOR" or user.role == "ADMIN" %}
+                        <a href="{% url 'dashboard:central' %}" 
+                           class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-colors {% if request.resolver_match.view_name == 'dashboard:central' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-700 hover:bg-slate-100 hover:text-indigo-600{% endif %}">
+                            <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                            Central Dashboard
+                        </a>
+                        <a href="{% url 'dashboard:audit' %}" 
+                           class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-colors {% if request.resolver_match.view_name == 'dashboard:audit' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-700 hover:bg-slate-100 hover:text-indigo-600{% endif %}">
+                            <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                            Audit Trail
+                        </a>
+                        {% endif %}
+
+                        {% if user.is_admin_role %}
+                        <a href="{% url 'users:manage_list' %}" 
+                           class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-colors {% if request.resolver_match.view_name == 'users:manage_list' %}bg-indigo-50/80 text-indigo-700 font-semibold{% else %}text-slate-700 hover:bg-slate-100 hover:text-indigo-600{% endif %}">
+                            <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                            Users
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Right: User Dropdown & Mobile Hamburger -->
+            <div class="flex items-center gap-3">
+                <!-- User Profile Dropdown Menu (Accessible and modern) -->
+                <div class="relative" id="user-menu-container">
+                    <button type="button" 
+                            id="user-menu-button"
+                            aria-expanded="false" 
+                            aria-haspopup="true"
+                            class="flex items-center gap-2.5 rounded-xl border border-slate-200/90 bg-white px-2.5 py-1.5 shadow-soft-xs transition-all duration-150 hover:bg-slate-50 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                        <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-xs font-bold text-indigo-700 uppercase">
+                            {{ user.first_name|first|default:user.username|first|upper }}
+                        </div>
+                        <div class="hidden sm:flex flex-col text-left">
+                            <span class="text-xs font-semibold text-slate-800 leading-tight max-w-[120px] truncate">{{ user.get_full_name|default:user.username }}</span>
+                            <span class="text-[10px] font-medium text-slate-500 leading-tight">{{ user.get_role_display }}</span>
+                        </div>
+                        <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" id="user-menu-chevron" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Panel -->
+                    <div id="user-menu-dropdown" 
+                         class="hidden absolute right-0 mt-2 w-64 origin-top-right rounded-2xl border border-slate-200/90 bg-white p-2 shadow-soft-xl transition-all duration-200 z-50">
+                        <!-- Profile Header -->
+                        <div class="border-b border-slate-100 px-3 py-2.5">
+                            <p class="text-xs font-semibold text-slate-900 leading-none">{{ user.get_full_name|default:user.username }}</p>
+                            <p class="mt-1 text-xs text-slate-500 truncate leading-none">{{ user.email }}</p>
+                            <div class="mt-2.5 flex items-center gap-1.5">
+                                <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-600/10">
+                                    {{ user.get_role_display }}
+                                </span>
+                                {% if user.department %}
+                                <span class="text-[11px] text-slate-400 truncate">{{ user.department }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Menu Links -->
+                        <div class="py-1">
+                            <a href="{% url 'users:profile' %}" class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-indigo-600 transition-colors">
+                                <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                My Profile
+                            </a>
+                            <a href="{% url 'users:profile_edit' %}" class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-indigo-600 transition-colors">
+                                <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                Edit Profile
+                            </a>
+                            <a href="{% url 'users:password_change' %}" class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-indigo-600 transition-colors">
+                                <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                Change Password
+                            </a>
+                            {% if user.is_admin_role %}
+                            <div class="my-1 border-t border-slate-100"></div>
+                            <a href="{% url 'users:manage_list' %}" class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-indigo-600 transition-colors">
+                                <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                                Manage Users
+                            </a>
+                            <a href="{% url 'dashboard:central' %}" class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-indigo-600 transition-colors">
+                                <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                                Central Dashboard
+                            </a>
+                            {% endif %}
+                        </div>
+
+                        <!-- Logout Form -->
+                        <div class="border-t border-slate-100 pt-1">
+                            <form method="post" action="{% url 'authentication:logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors">
+                                    <svg class="h-4 w-4 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                    Log out
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Hamburger Toggle -->
+                <button type="button" 
+                        id="mobile-menu-button"
+                        aria-label="Toggle navigation"
+                        class="lg:hidden inline-flex items-center justify-center rounded-xl p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                    <svg class="h-6 w-6" id="mobile-hamburger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                    <svg class="h-6 w-6 hidden" id="mobile-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer Menu -->
+        <div id="mobile-menu" class="hidden lg:hidden border-t border-slate-200/80 bg-white px-4 py-4 sm:px-6 shadow-soft-lg">
+            <div class="grid grid-cols-2 gap-2 text-sm font-medium">
+                <a href="{% url 'dashboard:home' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 {% if request.resolver_match.view_name == 'dashboard:home' %}bg-indigo-50 text-indigo-700 font-semibold{% endif %}">
+                    Dashboard
+                </a>
+                <a href="{% url 'access_logging:check_in' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 {% if request.resolver_match.view_name == 'access_logging:check_in' %}bg-indigo-50 text-indigo-700 font-semibold{% endif %}">
+                    Check In
+                </a>
+                <a href="{% url 'access_logging:my_visits' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 {% if request.resolver_match.view_name == 'access_logging:my_visits' %}bg-indigo-50 text-indigo-700 font-semibold{% endif %}">
+                    My Visits
+                </a>
+                <a href="{% url 'equipment:inventory' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 {% if request.resolver_match.view_name == 'equipment:inventory' %}bg-indigo-50 text-indigo-700 font-semibold{% endif %}">
+                    Equipment
+                </a>
+                <a href="{% url 'equipment:mine' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 {% if request.resolver_match.view_name == 'equipment:mine' %}bg-indigo-50 text-indigo-700 font-semibold{% endif %}">
+                    My Equipment
+                </a>
+                <a href="{% url 'incidents:list' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 {% if request.resolver_match.view_name == 'incidents:list' %}bg-indigo-50 text-indigo-700 font-semibold{% endif %}">
+                    Incidents
+                </a>
+                {% if user.is_staff_role %}
+                <a href="{% url 'access_logging:active' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 {% if request.resolver_match.view_name == 'access_logging:active' %}bg-indigo-50 text-indigo-700 font-semibold{% endif %}">
+                    Active Visits
+                </a>
+                {% endif %}
+                {% if user.role == "INSTRUCTOR" or user.role == "ADMIN" %}
+                <a href="{% url 'dashboard:central' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 {% if request.resolver_match.view_name == 'dashboard:central' %}bg-indigo-50 text-indigo-700 font-semibold{% endif %}">
+                    Central Dashboard
+                </a>
+                <a href="{% url 'dashboard:audit' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 {% if request.resolver_match.view_name == 'dashboard:audit' %}bg-indigo-50 text-indigo-700 font-semibold{% endif %}">
+                    Audit Trail
+                </a>
+                {% endif %}
+                {% if user.is_admin_role %}
+                <a href="{% url 'users:manage_list' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 {% if request.resolver_match.view_name == 'users:manage_list' %}bg-indigo-50 text-indigo-700 font-semibold{% endif %}">
+                    User Management
+                </a>
+                {% endif %}
+            </div>
+            <div class="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between">
+                <a href="{% url 'users:profile' %}" class="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700 font-bold">
+                        {{ user.first_name|first|default:user.username|first|upper }}
+                    </span>
+                    {{ user.get_full_name|default:user.username }} ({{ user.get_role_display }})
                 </a>
                 <form method="post" action="{% url 'authentication:logout' %}">
                     {% csrf_token %}
-                    <button type="submit" class="rounded-lg border border-slate-200 px-3 py-2 font-medium text-slate-600 transition hover:text-purple-600 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 active:border-slate-200 active:bg-slate-100 active:text-slate-800">Log out</button>
+                    <button type="submit" class="text-xs font-medium text-rose-600 hover:underline">Log out</button>
                 </form>
             </div>
         </div>
     </header>
     {% endif %}
 
-    <main class="mx-auto min-h-[calc(100vh-5rem)] max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+    <!-- Main Content Container -->
+    <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
 
-        <div id="ajax-flash" class="mx-auto mb-6 max-w-md space-y-2"></div>
+        <!-- AJAX Inline Flash Container -->
+        <div id="ajax-flash" class="mx-auto mb-6 max-w-xl space-y-2.5"></div>
 
+        <!-- Django Standard Flash Messages -->
         {% if messages %}
-        <div class="mx-auto mb-6 max-w-2xl space-y-2">
+        <div class="mx-auto mb-6 max-w-2xl space-y-2.5">
             {% for message in messages %}
-            <div class="flash-message rounded-lg border px-4 py-3 text-sm
-                {% if message.tags == 'success' %}border-green-200 bg-green-50 text-green-800
-                {% elif message.tags == 'error' %}border-red-200 bg-red-50 text-red-800
-                {% elif message.tags == 'warning' %}border-amber-200 bg-amber-50 text-amber-800
-                {% else %}border-blue-200 bg-blue-50 text-blue-800{% endif %}">
-                {{ message }}
+            <div class="flash-message flex items-center gap-3 rounded-xl border p-4 text-sm font-medium shadow-soft-sm transition-all duration-200
+                {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50/90 text-emerald-900
+                {% elif message.tags == 'error' %}border-rose-200 bg-rose-50/90 text-rose-900
+                {% elif message.tags == 'warning' %}border-amber-200 bg-amber-50/90 text-amber-900
+                {% else %}border-blue-200 bg-blue-50/90 text-blue-900{% endif %}">
+                
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg
+                    {% if message.tags == 'success' %}bg-emerald-100 text-emerald-600
+                    {% elif message.tags == 'error' %}bg-rose-100 text-rose-600
+                    {% elif message.tags == 'warning' %}bg-amber-100 text-amber-600
+                    {% else %}bg-blue-100 text-blue-600{% endif %}">
+                    {% if message.tags == 'success' %}
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                    {% elif message.tags == 'error' %}
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    {% elif message.tags == 'warning' %}
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    {% else %}
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                    {% endif %}
+                </span>
+                <div class="flex-1">{{ message }}</div>
             </div>
             {% endfor %}
         </div>
@@ -72,14 +392,129 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="border-t border-slate-200/80 bg-white">
-        <div class="mx-auto max-w-7xl px-4 py-4 text-center text-xs text-slate-400 sm:px-6 lg:px-8">
-            LabTrace <span aria-hidden="true">&middot;</span> Laboratory operations
+    <!-- Modern Enterprise Footer -->
+    <footer class="mt-auto border-t border-slate-200/80 bg-white py-6">
+        <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6 lg:px-8 text-xs text-slate-500">
+            <div class="flex items-center gap-2">
+                <span class="flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                <span class="font-medium text-slate-700">LabTrace Platform</span>
+                <span class="text-slate-300">&middot;</span>
+                <span>Offline Laboratory Operations &amp; Asset Management</span>
+            </div>
+            <div class="flex items-center gap-4 text-slate-400">
+                <span>Secure Local Storage</span>
+                <span>&middot;</span>
+                <span>Strict Access Logging</span>
+            </div>
         </div>
     </footer>
 
     <script src="{% static 'js/jquery.min.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
+    
+    <!-- Modern Navigation Dropdown & Mobile Toggle Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Manage dropdown elements
+            var manageBtn = document.getElementById('nav-manage-button');
+            var manageMenu = document.getElementById('nav-manage-dropdown');
+            var manageChevron = document.getElementById('nav-manage-chevron');
+
+            // User menu dropdown elements
+            var userBtn = document.getElementById('user-menu-button');
+            var userMenu = document.getElementById('user-menu-dropdown');
+            var userChevron = document.getElementById('user-menu-chevron');
+
+            // Helper to close Manage menu
+            function closeManageMenu() {
+                if (manageMenu && !manageMenu.classList.contains('hidden')) {
+                    manageMenu.classList.add('hidden');
+                    if (manageChevron) manageChevron.classList.remove('rotate-180');
+                    if (manageBtn) manageBtn.setAttribute('aria-expanded', 'false');
+                }
+            }
+
+            // Helper to close User menu
+            function closeUserMenu() {
+                if (userMenu && !userMenu.classList.contains('hidden')) {
+                    userMenu.classList.add('hidden');
+                    if (userChevron) userChevron.classList.remove('rotate-180');
+                    if (userBtn) userBtn.setAttribute('aria-expanded', 'false');
+                }
+            }
+
+            // Manage dropdown toggle
+            if (manageBtn && manageMenu) {
+                manageBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    closeUserMenu();
+                    var isHidden = manageMenu.classList.contains('hidden');
+                    if (isHidden) {
+                        manageMenu.classList.remove('hidden');
+                        if (manageChevron) manageChevron.classList.add('rotate-180');
+                        manageBtn.setAttribute('aria-expanded', 'true');
+                    } else {
+                        closeManageMenu();
+                    }
+                });
+            }
+
+            // User profile dropdown toggle
+            if (userBtn && userMenu) {
+                userBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    closeManageMenu();
+                    var isHidden = userMenu.classList.contains('hidden');
+                    if (isHidden) {
+                        userMenu.classList.remove('hidden');
+                        if (userChevron) userChevron.classList.add('rotate-180');
+                        userBtn.setAttribute('aria-expanded', 'true');
+                    } else {
+                        closeUserMenu();
+                    }
+                });
+            }
+
+            // Global click outside to dismiss active dropdowns
+            document.addEventListener('click', function (e) {
+                if (manageMenu && manageBtn && !manageMenu.contains(e.target) && !manageBtn.contains(e.target)) {
+                    closeManageMenu();
+                }
+                if (userMenu && userBtn && !userMenu.contains(e.target) && !userBtn.contains(e.target)) {
+                    closeUserMenu();
+                }
+            });
+
+            // Escape key dismisses both menus
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeManageMenu();
+                    closeUserMenu();
+                }
+            });
+
+            // Mobile hamburger menu toggle
+            var mobileBtn = document.getElementById('mobile-menu-button');
+            var mobileMenu = document.getElementById('mobile-menu');
+            var hamburgerIcon = document.getElementById('mobile-hamburger-icon');
+            var closeIcon = document.getElementById('mobile-close-icon');
+
+            if (mobileBtn && mobileMenu) {
+                mobileBtn.addEventListener('click', function () {
+                    var isHidden = mobileMenu.classList.contains('hidden');
+                    if (isHidden) {
+                        mobileMenu.classList.remove('hidden');
+                        hamburgerIcon.classList.add('hidden');
+                        closeIcon.classList.remove('hidden');
+                    } else {
+                        mobileMenu.classList.add('hidden');
+                        hamburgerIcon.classList.remove('hidden');
+                        closeIcon.classList.add('hidden');
+                    }
+                });
+            }
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

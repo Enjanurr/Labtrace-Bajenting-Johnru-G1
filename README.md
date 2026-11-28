@@ -5,10 +5,7 @@
 
 LabTrace is a Django application for laboratory user accounts, lab visits, and
 equipment loans. The repository is organized as modular Django apps, with
-shared project templates and locally stored static files.   
- 
-
-  
+shared project templates and locally stored static files.
 
 
 ## What is implemented
@@ -20,11 +17,11 @@ shared project templates and locally stored static files.
 - **Lab visits (`access_logging`)** — check-in, visit history, check-out, and a
   staff active-visits/occupancy view with an AJAX refresh and checkout action.
 - **Equipment (`equipment`)** — inventory, borrowing and returning, condition
-  recording, optional/required proof photos, and staff asset editing.
+  recording, and staff asset editing.
 - **Dashboards (`dashboard`)** — role-specific landing pages; the admin page
   currently displays user counts.
-- **Incidents (`incidents`)** — app package scaffold only; the incident workflow
-  and routing are not implemented.
+- **Incidents (`incidents`)** — incident reporting, status transitions, history,
+  and staff audit views are implemented and routed.
 
 ## Architecture and current file layout
 
@@ -126,7 +123,7 @@ lab/
 │   │   ├── __init__.py
 │   │   └── 0001_initial.py
 │   └── templates/                     # Present, currently empty
-├── incidents/                         # Scaffold; no URL module or migrations
+├── incidents/                         # Incident reporting and lifecycle
 │   ├── __init__.py
 │   ├── admin.py
 │   ├── apps.py
@@ -200,15 +197,14 @@ lab/
 - The project-level `templates/` directory is configured in Django settings;
   apps may also provide templates under their own `templates/` directories.
 - Password-reset emails use Django's file-based email backend and are written
-  to `sent_emails/`. Uploaded equipment condition images are configured to use
-  local `MEDIA_ROOT` (`media/`), which is not currently present in the tree.
+  to `sent_emails/`. The application does not use uploaded media storage.
 
 ## Requirements and local setup
 
-Requirements are listed in `requirements.txt`: Django 5.2, `psycopg` 3, and
-`python-dotenv`. A PostgreSQL server that accepts SSL connections is required
-by the current settings; the checked-in/local `db.sqlite3` is **not** selected
-as the application database.
+Requirements are listed in `requirements.txt`: Django 5.2, `psycopg` 3,
+`python-dotenv`. A PostgreSQL server that accepts SSL connections
+is required by the current settings; the checked-in/local `db.sqlite3` is
+**not** selected as the application database.
 
 1. Use Python 3.11 or newer and create/activate a virtual environment:
 
@@ -225,14 +221,7 @@ as the application database.
    python -m pip install -r requirements.txt
    ```
 
-3. To rebuild the bundled Tailwind stylesheet, install Node.js and run:
-
-   ```shell
-   npm install
-   npm run build:css
-   ```
-
-4. Configure the PostgreSQL connection in the ignored local `.env` file:
+3. Configure the PostgreSQL connection in the ignored local `.env` file:
 
    ```dotenv
    DB_NAME=your_database
@@ -246,7 +235,7 @@ as the application database.
    values appropriate to your PostgreSQL instance. The connection is set to
    `sslmode=require`. Keep real credentials out of source control.
 
-5. Apply migrations and start the development server:
+4. Apply migrations and start the development server:
 
    ```shell
    python manage.py migrate
@@ -258,21 +247,22 @@ as the application database.
    admin as appropriate.
 
 When changing models, create and review migrations with `python manage.py
-makemigrations` before applying them. The current test modules are mostly
-placeholders; `users/tests.py` contains a small set of routing tests. Run
-`python manage.py test` against a configured, reachable test database before
-relying on a change.
+makemigrations` before applying them. Tests cover login, profile changes,
+visits, equipment borrowing/returning, and incident behavior. Run
+`python manage.py test --keepdb` against a configured, reachable test database
+before relying on a change.
 
 ## Offline and deployment caveats
 
-- jQuery and a compiled Tailwind stylesheet are stored under `static/`; the
-  application uses these local assets and does not require the Tailwind CDN.
+- jQuery and a compiled Tailwind stylesheet are stored under `static/`.
+  Templates use these local assets and do not load Tailwind from a CDN.
+- Tailwind is compiled locally with the bundled v3.4.17 executable. After
+  changing utility classes in templates or forms, run `npm run build:css`;
+  Django serves the generated `static/css/tailwind.css`.
 - The database is configured for PostgreSQL, which may be local but must be
   provisioned separately. File-based email and media storage are local.
 - `DEBUG` is enabled and `SECRET_KEY` has a development placeholder in the
   current settings. Configure secure deployment settings before exposing the
   application.
-- Equipment templates are in the shared template directory.
-- `requirements.txt` does not currently list Pillow even though equipment
-  models use `ImageField`; verify/add the image dependency before using
-  condition-image uploads.
+- Equipment templates are in the shared template directory; the inventory
+  view and template both use `equipment/inventory.html`.

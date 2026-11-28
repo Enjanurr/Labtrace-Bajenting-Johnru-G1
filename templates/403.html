@@ -1,12 +1,36 @@
 {% extends "base.html" %}
-{% block title %}Access denied{% endblock %}
+{% block title %}Access Denied{% endblock %}
+
 {% block content %}
-<div class="mx-auto max-w-lg rounded-2xl border border-red-100 bg-white p-6 text-center shadow-sm sm:p-10">
-  <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-lg font-bold text-red-600">403</div>
-  <h1 class="mt-5 text-2xl font-bold tracking-tight text-slate-900">Access denied</h1>
-  <p class="mt-2 text-sm leading-6 text-slate-600">
-    Your role (<strong>{{ user.get_role_display }}</strong>) can't open this page.
-  </p>
-  <a href="{% url 'dashboard:home' %}" class="mt-6 inline-flex rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:text-purple-200 hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.5)] focus:outline-none focus:ring-2 focus:ring-indigo-300 active:border active:border-slate-200 active:bg-slate-100 active:text-slate-800">Back to dashboard</a>
+<div class="mx-auto flex min-h-[65vh] max-w-lg items-center justify-center py-10">
+  <div class="w-full rounded-2xl border border-slate-200/90 bg-white p-8 text-center shadow-soft-lg sm:p-10">
+    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 ring-8 ring-rose-50/50">
+      <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+    </div>
+    
+    <span class="mt-6 inline-flex items-center rounded-full bg-rose-100/80 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-rose-800">
+      Error 403 &middot; Restricted Access
+    </span>
+
+    <h1 class="mt-4 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Access Denied</h1>
+    <p class="mt-2 text-sm leading-relaxed text-slate-600">
+      Your current role (<strong class="font-semibold text-slate-900">{{ user.get_role_display|default:"Unknown" }}</strong>) does not have authorization to view this resource.
+    </p>
+
+    <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+      <a href="{% url 'dashboard:home' %}" 
+         class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-soft-sm shadow-indigo-500/20 transition-all duration-150 hover:bg-indigo-700 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Return to Dashboard
+      </a>
+      <a href="{% url 'users:profile' %}" 
+         class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition-all duration-150 hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-200">
+        View My Profile
+      </a>
+    </div>
+  </div>
 </div>
 {% endblock %}
